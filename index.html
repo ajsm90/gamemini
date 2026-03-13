@@ -92,10 +92,12 @@ class SunoMasterpiece extends Phaser.Scene {
         this.load.image('casa', 'images/casa.png');
         this.load.image('granero', 'images/granero.png');
         this.load.image('coche', 'images/coche.png');
+        this.load.image('hoja', 'images/hoja.png');
 
         this.load.image('m1', 'images/m_1.png');
         this.load.image('m2', 'images/m_2.png');
         this.load.image('m3', 'images/m_3.png');
+
 
         this.load.image('bird', 'images/pajaro.png');
         this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
@@ -106,9 +108,18 @@ class SunoMasterpiece extends Phaser.Scene {
         });
 
         this.load.audio('background_music', 'sounds/bgmusic.mp3');
+
+        this.load.audio('arbol_sound', 'sounds/hojas_arbol.mp3'); // Sonido para árboles
+        this.load.audio('coche_engine_sound', 'sounds/coche_engine.mp3'); // Sonido para tractor/coche
+        this.load.audio('tractor_engine_sound', 'sounds/tractor_engine.mp3'); // Sonido para tractor/coche
     }
 
     create() {
+        const circle = this.make.graphics({ x: 0, y: 0, add: false });
+        circle.fillStyle(0xffffff, 1);
+        circle.fillCircle(10, 10, 10);
+        circle.generateTexture('white_smoke', 20, 20);
+
         const worldWidth = 3000;
         const worldHeight = this.sys.game.config.height;
         // CORRECCIÓN: Guardamos groundY en la clase para que sea accesible globalmente
@@ -122,6 +133,8 @@ class SunoMasterpiece extends Phaser.Scene {
             loop: true
         });
         this.bgMusic.play();
+
+        
 
         // --- CIELO ---
         this.add.graphics()
@@ -177,16 +190,15 @@ class SunoMasterpiece extends Phaser.Scene {
             .setScrollFactor(0.1);
         
         
-        // --- ÁRBOLES ---
+        // --- ÁRBOLES Y VEHÍCULOS ---
         const treeTypes = [
-            { key: 'tree', count: 3, scale: { min: 0.6, max: 0.6 } },
-            { key: 'tree2', count: 3, scale: { min: 0.5, max: 0.5 } },
-            { key: 'tree3', count: 3, scale: { min: 0.5, max: 0.5 } },
-            { key: 'granero', count: 1, scale: { min: 1.3, max: 1.3 } },
-            { key: 'tractor', count: 1, scale: { min: 0.7, max: 0.7 } },
-            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 } },
-            { key: 'coche', count: 1, scale: { min: 0.7, max: 0.7 } },
-            
+            { key: 'tree', count: 3, scale: { min: 0.6, max: 0.6 }, offsetY: -18 },   // Sube 10px
+            { key: 'tree2', count: 3, scale: { min: 0.5, max: 0.5 }, offsetY: -23 },    // Baja 5px
+            { key: 'tree3', count: 2, scale: { min: 0.5, max: 0.5 }, offsetY: -15 },    // En el suelo
+            { key: 'granero', count: 1, scale: { min: 1.3, max: 1.3 }, offsetY: -20 },// Sube 20px
+            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -5 },
+            { key: 'tractor', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
+            { key: 'coche', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
         ];
 
         const minDistance = 350;
@@ -206,14 +218,61 @@ class SunoMasterpiece extends Phaser.Scene {
                 if (!tooClose || attempts === 50) {
                     placedX.push(x);
                     let scale = Phaser.Math.FloatBetween(type.scale.min, type.scale.max);
-                    // CORRECCIÓN: Profundidad baja para los árboles
-                    this.add.image(x, this.groundY, type.key)
-                        .setOrigin(1.12, 1.12) 
+                    
+                    // Calculamos la posición Y base + su offset personal
+                    const finalY = this.groundY + (type.offsetY || 0);
+
+                    let item = this.add.image(x, finalY, type.key)
+                        .setOrigin(0.5, 1) 
                         .setScale(scale)
-                        .setDepth(5); 
+                        .setDepth(5);
+
+                    // --- SONIDOS Y HOJAS SOLO PARA ÁRBOLES ---
+                    if (type.key.includes('tree')) {
+                        item.setInteractive();
+                        item.on('pointerdown', () => {
+                            this.sound.play('arbol_sound', { volume: 0.5 });
+
+                            // Definimos un área (rectángulo) basada en el tamaño del árbol actual
+                            // Lo situamos un poco hacia arriba para que coincida con las hojas
+                            const area = new Phaser.Geom.Rectangle(
+                                item.x - (item.displayWidth / 4), // Izquierda
+                                item.y - (item.displayHeight * 0.8), // Arriba
+                                item.displayWidth / 2, // Ancho del área
+                                item.displayHeight / 3 // Alto del área
+                            );
+
+                            // Lanzamos partículas aleatoriamente DENTRO de ese rectángulo
+                            for(let i = 0; i < 15; i++) {
+                                let p = area.getRandomPoint();
+                                this.leafEmitter.emitParticleAt(p.x, p.y);
+                            }
+
+                            // Efecto visual de vibración
+                            this.tweens.add({
+                                targets: item,
+                                angle: { from: -2, to: 2 },
+                                duration: 50,
+                                yoyo: true,
+                                repeat: 3
+                            });
+                        });
+                    }
+
+                    // --- CONFIGURACIÓN DE VEHÍCULOS ---
+                    if (type.key === 'tractor' || type.key === 'coche') {
+                        item.setInteractive({ draggable: true });
+                        item.isVehicle = true;
+                        item.fixedY = finalY;
+                        
+                        const soundKey = type.key + '_engine_sound';
+                        // Creamos un sonido de motor que se queda en bucle pero pausado
+                        item.engineAudio = this.sound.add(soundKey, { loop: true, volume: 0.3 });
+                    }
                 }
             }
         });
+
         // --- PÁJAROS ---
         // Creamos un grupo físico para los pájaros
         this.birds = this.physics.add.group({
@@ -306,6 +365,38 @@ class SunoMasterpiece extends Phaser.Scene {
         } else {
             this.input.once('pointerdown', () => this.scale.startFullscreen());
         }
+
+        // 2. Sistema de Humo para vehículos
+        this.exhaust = this.add.particles(0, 0, 'white_smoke', {
+            scale: { start: 0.3, end: 1.2 }, // Crecen más para dar volumen
+            alpha: { start: 0.6, end: 0 },
+            lifespan: 1200,                  // Duran un poco más en el aire
+            speed: { min: 30, max: 70 },
+            angle: { min: 200, max: 340 },   // Ángulo más cerrado hacia arriba
+            gravityY: -80,                   // Flotan hacia arriba más rápido
+            
+            // --- LOS CAMBIOS PARA MÁS CANTIDAD ---
+            frequency: 20,                   // ¡MENOS es MÁS! Sale una partícula cada 20ms
+            quantity: 2,                     // Salen de 2 en 2 en cada ráfaga
+            
+            blendMode: 'NORMAL',
+            tint: 0xdddddd, 
+            emitting: false
+        });
+        this.exhaust.setDepth(10);
+
+        this.leafEmitter = this.add.particles(0, 0, 'hoja', {
+            scale: { start: 0.6, end: 0.3 },
+            alpha: { start: 1, end: 0 },
+            lifespan: 2000,
+            speed: { min: 50, max: 100 },
+            angle: { min: 0, max: 360 },
+            gravityY: 150,     // Las hojas caen hacia abajo
+            rotate: { min: 0, max: 360 }, // Las hojas van girando mientras caen
+            emitting: false,    // Solo salen cuando tocamos el árbol
+            x: { min: -20, max: 200 },
+        });
+        this.leafEmitter.setDepth(10);
     }
 
     spawnAnimal(key, x, y, scale, jumpMin, jumpMax) {
@@ -333,31 +424,64 @@ class SunoMasterpiece extends Phaser.Scene {
     setupInteractions() {
         this.input.on('dragstart', (p, char) => {
             char.isHeld = true;
-            char.body.setAllowGravity(false);
-            char.body.setVelocity(0, 0);
-            char.setAlpha(0.8);
+            if (char.body) {
+                char.body.setAllowGravity(false);
+                char.body.setVelocity(0, 0);
+            }
+            // Si es un vehículo, encendemos el motor y humo
+            if (char.isVehicle) {
+                if (char.engineAudio) char.engineAudio.play();
+                
+                // --- CAMBIO AQUÍ ---
+                // Traemos el sistema al frente de la lista de renderizado
+                this.children.bringToTop(this.exhaust); 
+                
+                // Ponemos los animales en 10, árboles en 5. 
+                // Si ponemos el humo en el depth del coche (que es 5), se verá tras los árboles.
+                // Así que subimos el coche y el humo temporalmente mientras arrastras:
+                char.setDepth(20); 
+                this.exhaust.setDepth(19); // Justo detrás del coche, pero delante de árboles(5) y animales(10)
+                
+                this.exhaust.startFollow(char, -char.displayWidth * -0.4, -25); 
+                this.exhaust.start();
+            }
+            // Eliminado char.setAlpha(0.8)
             this.tweens.killTweensOf(char, ['scaleX', 'scaleY']);
-            char.setScale(char.originalScale);
         });
 
         this.input.on('drag', (p, char, dx, dy) => {
             char.oldPos = { x: char.x, y: char.y };
             
-            // CORRECCIÓN: Bloqueo de eje Y para no atravesar el suelo al arrastrar
-            const limitY = this.groundY - (char.displayHeight / 2);
-            let finalY = dy > limitY ? limitY : dy;
-
-            char.setPosition(dx, finalY);
+            if (char.isVehicle) {
+                // Solo permitimos movimiento en X. En Y usamos su valor fijo personal.
+                char.setPosition(dx, char.fixedY);
+                
+            } else {
+                // Lógica para animales (con límite de suelo)
+                const limitY = this.groundY - (char.displayHeight / 2);
+                let finalY = dy > limitY ? limitY : dy;
+                char.setPosition(dx, finalY);
+            }
             char.angle *= 0.6;
         });
 
         this.input.on('dragend', (p, char) => {
             char.isHeld = false;
-            char.body.setAllowGravity(true);
-            char.setAlpha(1);
-            const vx = (char.x - char.oldPos.x) * 20;
-            const vy = (char.y - char.oldPos.y) * 20;
-            char.body.setVelocity(vx, vy);
+            // Eliminado char.setAlpha(1)
+            
+            // SI ES VEHÍCULO: Apagar motor y humo
+            if (char.isVehicle) {
+                if (char.engineAudio) char.engineAudio.stop();
+                this.exhaust.stop();
+                char.setDepth(5); // Devuelve el coche a la capa de objetos
+            }
+
+            if (char.body) {
+                char.body.setAllowGravity(true);
+                const vx = (char.x - char.oldPos.x) * 20;
+                const vy = (char.y - char.oldPos.y) * 20;
+                char.body.setVelocity(vx, vy);
+            }
         });
 
         this.input.on('pointermove', (p) => {
@@ -455,7 +579,7 @@ const config = {
     scene: SunoMasterpiece
 };
 
-new Phaser.Game(config);
+
 
 function checkOrientation() {
     const notice = document.getElementById('rotateNotice');
