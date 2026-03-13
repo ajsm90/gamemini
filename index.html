@@ -123,6 +123,27 @@ class SunoMasterpiece extends Phaser.Scene {
     }
 
     create() {
+
+        // Ajusta estos valores según lo que escuches
+        this.volumeSettings = {
+            'cat': 0.8,
+            'rana': 1.2,
+            'vaca': 1.2, 
+            'pollito': 1.2, 
+            'caballo': 1.2,
+            'gallina': 2.2,
+            'conejo': 1.2,
+            'gallo': 4.2,
+            'perro': 1.2,
+            'zorro': 1.2,
+            'blaky': 1.2,
+            'chico': 1.2,
+            'tractor': 2.0,
+            'coche': 2.0,
+            'arbol_sound': 2.0,
+            // Los que no pongas aquí, usarán 1.0 por defecto
+        };
+
         const circle = this.make.graphics({ x: 0, y: 0, add: false });
         circle.fillStyle(0xffffff, 1);
         circle.fillCircle(10, 10, 10);
@@ -239,7 +260,9 @@ class SunoMasterpiece extends Phaser.Scene {
                     if (type.key.includes('tree')) {
                         item.setInteractive();
                         item.on('pointerdown', () => {
-                            this.sound.play('arbol_sound', { volume: 0.5 });
+                            const vol = this.volumeSettings['arbol_sound'] || 1.0; 
+        
+                            this.sound.play('arbol_sound', { volume: vol });
 
                             // Definimos un área (rectángulo) basada en el tamaño del árbol actual
                             // Lo situamos un poco hacia arriba para que coincida con las hojas
@@ -273,9 +296,14 @@ class SunoMasterpiece extends Phaser.Scene {
                         item.isVehicle = true;
                         item.fixedY = finalY;
                         
-                        const soundKey = type.key + '_engine_sound';
-                        // Creamos un sonido de motor que se queda en bucle pero pausado
-                        item.engineAudio = this.sound.add(soundKey, { loop: true, volume: 0.3 });
+                        // Definimos la clave del sonido (que cargaste en preload)
+                        const soundKey = type.key + '_engine_sound'; 
+                        const customVol = this.volumeSettings[type.key] || 0.3; 
+
+                        item.engineAudio = this.sound.add(soundKey, { 
+                            loop: true, 
+                            volume: customVol 
+                        });
                     }
                 }
             }
@@ -351,6 +379,8 @@ class SunoMasterpiece extends Phaser.Scene {
             { key: 'chico', count: 1, minScale: 0.12, maxScale: 0.12, jumpMin: -200, jumpMax: -400 },
         ];
 
+        
+
         animalsData.forEach(type => {
             for (let i = 0; i < type.count; i++) {
                 const x = Phaser.Math.Between(200, worldWidth - 200);
@@ -384,7 +414,8 @@ class SunoMasterpiece extends Phaser.Scene {
 
         // 2. Sistema de Humo para vehículos
         this.exhaust = this.add.particles(0, 0, 'white_smoke', {
-            scale: { start: 0.3, end: 1.2 }, // Crecen más para dar volumen
+            scale: { start: 0.6, end: 0, random: true },
+            rotate: { min: 0, max: 360, delta: 2 },
             alpha: { start: 0.6, end: 0 },
             lifespan: 1200,                  // Duran un poco más en el aire
             speed: { min: 30, max: 70 },
@@ -392,8 +423,8 @@ class SunoMasterpiece extends Phaser.Scene {
             gravityY: -80,                   // Flotan hacia arriba más rápido
             
             // --- LOS CAMBIOS PARA MÁS CANTIDAD ---
-            frequency: 20,                   // ¡MENOS es MÁS! Sale una partícula cada 20ms
-            quantity: 2,                     // Salen de 2 en 2 en cada ráfaga
+            frequency: 15,                   // ¡MENOS es MÁS! Sale una partícula cada 20ms
+            quantity: 5,                     // Salen de 2 en 2 en cada ráfaga
             
             blendMode: 'NORMAL',
             tint: 0xdddddd, 
@@ -431,10 +462,8 @@ class SunoMasterpiece extends Phaser.Scene {
         animal.body.setMaxVelocity(300, 600);
         animal.body.setDamping(true);
         animal.body.setDrag(80, 0);
-
-        animal.on('pointerdown', () => {
-            this.sound.play(key + '_sound');
-        });
+        const customVolume = this.volumeSettings[key];
+        animal.currentSound = this.sound.add(key + '_sound', { volume: customVolume });
     }
 
     setupInteractions() {
@@ -443,6 +472,10 @@ class SunoMasterpiece extends Phaser.Scene {
             if (char.body) {
                 char.body.setAllowGravity(false);
                 char.body.setVelocity(0, 0);
+            }
+            // --- AUDIO SIMPLE ---
+            if (!char.isVehicle && char.currentSound) {
+                char.currentSound.play(); // Reproduce desde el inicio
             }
             // Si es un vehículo, encendemos el motor y humo
             if (char.isVehicle) {
@@ -490,6 +523,11 @@ class SunoMasterpiece extends Phaser.Scene {
                 if (char.engineAudio) char.engineAudio.stop();
                 this.exhaust.stop();
                 char.setDepth(5); // Devuelve el coche a la capa de objetos
+            }
+
+            if (char.currentSound) {
+                char.currentSound.stop();
+                // IMPORTANTE: NO uses .destroy() aquí, porque queremos reusarlo luego
             }
 
             if (char.body) {
