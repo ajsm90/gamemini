@@ -80,6 +80,14 @@ class SunoMasterpiece extends Phaser.Scene {
         this.load.image('rana', 'images/rana.png');
         this.load.image('vaca', 'images/vaca.png');
         this.load.image('pollito', 'images/pollito.png');
+        this.load.image('caballo', 'images/caballo.png');
+        this.load.image('gallina', 'images/gallina.png');
+        this.load.image('conejo', 'images/conejo.png');
+        this.load.image('gallo', 'images/gallo.png');
+        this.load.image('perro', 'images/perro.png');
+        this.load.image('zorro', 'images/zorro.png');
+        this.load.image('blaky', 'images/blaky.png');
+        this.load.image('chico', 'images/chico.png');
         
         // Otros recursos
         this.load.image('ground', 'images/ground.png');
@@ -102,7 +110,7 @@ class SunoMasterpiece extends Phaser.Scene {
         this.load.image('bird', 'images/pajaro.png');
         this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
 
-        const animalKeys = ['cat', 'rana', 'vaca', 'pollito'];
+        const animalKeys = ['cat', 'rana', 'vaca', 'pollito', 'caballo', 'gallina', 'conejo', 'gallo', 'perro', 'zorro', 'blaky', 'chico'];
         animalKeys.forEach(key => {
             this.load.audio(key + '_sound', `sounds/${key}.mp3`);
         });
@@ -332,7 +340,15 @@ class SunoMasterpiece extends Phaser.Scene {
             { key: 'cat', count: 1, minScale: 0.15, maxScale: 0.15, jumpMin: -200, jumpMax: -400 },
             { key: 'rana', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
             { key: 'vaca', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
-            { key: 'pollito', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 }
+            { key: 'pollito', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
+            { key: 'caballo', count: 1, minScale: 0.4, maxScale: 0.4, jumpMin: -200, jumpMax: -400 },
+            { key: 'gallina', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
+            { key: 'conejo', count: 1, minScale: 0.27, maxScale: 0.27, jumpMin: -200, jumpMax: -400 },
+            { key: 'gallo', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
+            { key: 'perro', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
+            { key: 'zorro', count: 1, minScale: 0.2, maxScale: 0.2, jumpMin: -200, jumpMax: -400 },
+            { key: 'blaky', count: 1, minScale: 0.1, maxScale: 0.1, jumpMin: -200, jumpMax: -400 },
+            { key: 'chico', count: 1, minScale: 0.12, maxScale: 0.12, jumpMin: -200, jumpMax: -400 },
         ];
 
         animalsData.forEach(type => {
