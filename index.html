@@ -24,14 +24,18 @@
 html, body {
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    background: #aedefc; /* El color del cielo */
-    position: fixed; /* Evita cualquier desplazamiento */
+    background: #aedefc; /* Color del cielo para camuflar cualquier micro-borde */
+    position: fixed;
 }
 canvas {
     display: block;
+    /* Forzamos que el canvas ignore cualquier cálculo extraño de márgenes */
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: fill; 
 }
 
 /* Overlay para vertical */
@@ -420,20 +424,26 @@ class SunoMasterpiece extends Phaser.Scene {
     }
 }
 
+// Usamos una altura fija para mantener la escala de los personajes
 const CANONICAL_HEIGHT = 720; 
 
-// Calculamos el ancho necesario para que no haya barras negras
-// Ratio = Ancho Real / Alto Real
-const aspectRatio = window.innerWidth / window.innerHeight;
-const dynamicWidth = CANONICAL_HEIGHT * aspectRatio;
+// Calculamos el ratio real del dispositivo
+const widthReal = window.innerWidth;
+const heightReal = window.innerHeight;
+const aspectRatio = widthReal / heightReal;
+
+// Calculamos el ancho virtual basándonos en la proporción exacta
+// Usamos Math.ceil para asegurarnos de que el juego siempre "sobre un poquito" y no "falte"
+const dynamicWidth = Math.ceil(CANONICAL_HEIGHT * aspectRatio);
 
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT, // Sigue usando FIT para asegurar que quepa
+        // FIT ajustará el CANONICAL_HEIGHT (720) al alto real del móvil (100%)
+        mode: Phaser.Scale.FIT, 
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: dynamicWidth,    // Ancho calculado (ej. en un Pixel 7 será mucho más que 1280)
-        height: CANONICAL_HEIGHT, // Alto siempre fijo
+        width: dynamicWidth,
+        height: CANONICAL_HEIGHT,
     },
     physics: {
         default: 'arcade',
@@ -457,7 +467,25 @@ function checkOrientation() {
 }
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('load', checkOrientation);
+
+window.addEventListener('resize', () => {
+    // Actualizamos el tamaño del juego dinámicamente si cambia la ventana
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+    const newRatio = newWidth / newHeight;
+    
+    // Cambiamos el tamaño del canvas de Phaser internamente
+    if (window.game) {
+        window.game.scale.setGameSize(Math.ceil(CANONICAL_HEIGHT * newRatio), CANONICAL_HEIGHT);
+    }
+    checkOrientation();
+});
+
+// Y cuando crees el juego, asígnale una variable global:
+window.game = new Phaser.Game(config);
+
 </script>
+
 
 </body>
 </html>
