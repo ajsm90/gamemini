@@ -70,20 +70,6 @@ class SunoMasterpiece extends Phaser.Scene {
         super('SunoMasterpiece');
     }
 
-    resizeGame(gameSize)
-    {
-        const width = gameSize.width;
-        const height = gameSize.height;
-
-        const worldWidth = 3000;
-        const worldHeight = height;
-
-        this.groundY = worldHeight * 0.95;
-
-        this.physics.world.setBounds(0, 0, worldWidth, this.groundY + 15);
-        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
-    }
-
     preload() {
         // Imágenes de animales
         this.load.image('cat', 'images/gato.png');
@@ -119,12 +105,6 @@ class SunoMasterpiece extends Phaser.Scene {
     }
 
     create() {
-        this.scale.on('resize', this.resizeGame, this);
-
-        this.resizeGame({ 
-            width: this.scale.width, 
-            height: this.scale.height 
-        });
         const worldWidth = 3000;
         const worldHeight = this.sys.game.config.height;
         // CORRECCIÓN: Guardamos groundY en la clase para que sea accesible globalmente
@@ -442,14 +422,12 @@ class SunoMasterpiece extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    pixelArt: false,
-    resolution: window.devicePixelRatio,
-
     scale: {
-        mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: window.innerWidth,
+        height: window.innerHeight
     },
-
     physics: {
         default: 'arcade',
         arcade: {
@@ -457,10 +435,8 @@ const config = {
             debug: false
         }
     },
-
     scene: SunoMasterpiece
 };
-
 
 new Phaser.Game(config);
 
