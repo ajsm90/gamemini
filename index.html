@@ -424,12 +424,12 @@ const config = {
     type: Phaser.AUTO,
     pixelArt: false,
     resolution: window.devicePixelRatio,
+
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 1280,
-        height: 720
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH
     },
+
     physics: {
         default: 'arcade',
         arcade: {
@@ -437,6 +437,7 @@ const config = {
             debug: false
         }
     },
+
     scene: SunoMasterpiece
 };
 
