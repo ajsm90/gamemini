@@ -420,13 +420,20 @@ class SunoMasterpiece extends Phaser.Scene {
     }
 }
 
+const CANONICAL_HEIGHT = 720; 
+
+// Calculamos el ancho necesario para que no haya barras negras
+// Ratio = Ancho Real / Alto Real
+const aspectRatio = window.innerWidth / window.innerHeight;
+const dynamicWidth = CANONICAL_HEIGHT * aspectRatio;
+
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT, // Esto hará que el juego se ajuste a la pantalla
+        mode: Phaser.Scale.FIT, // Sigue usando FIT para asegurar que quepa
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 1920,  // Resolución virtual fija (Ancho)
-        height: 900,  // Resolución virtual fija (Alto)
+        width: dynamicWidth,    // Ancho calculado (ej. en un Pixel 7 será mucho más que 1280)
+        height: CANONICAL_HEIGHT, // Alto siempre fijo
     },
     physics: {
         default: 'arcade',
