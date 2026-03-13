@@ -423,15 +423,15 @@ class SunoMasterpiece extends Phaser.Scene {
 const config = {
     type: Phaser.AUTO,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.FIT, // Esto hace que el juego se adapte a la pantalla
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: 1280,  // Resolución base (puedes usar 1920 si prefieres)
+        height: 720   // Proporción 16:9 estándar
     },
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 1200 },
+            gravity: { y: 800 }, // Bajé un poco la gravedad, pruébalo
             debug: false
         }
     },
