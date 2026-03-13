@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gamesuno2</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Compra">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+
+    <meta name="theme-color" content="#aedefc">
+    <meta name="msapplication-TileColor" content="#007e42">
+    
+</head>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #aedefc; /* El color del cielo */
+    position: fixed; /* Evita cualquier desplazamiento */
+}
+canvas {
+    display: block;
+}
+
+/* Overlay para vertical */
+#rotateNotice {
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: #e3f2fd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 2em;
+    color: #333;
+    z-index: 9999;
+    display: none;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+
+<body>
+<div id="rotateNotice">
+    ⚠️ Gira tu dispositivo a <strong>horizontal</strong> para jugar
+</div>
+
+<script>
+if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./service-worker.js');
+}
+// --- JUEGO PHASER ---
+class SunoMasterpiece extends Phaser.Scene {
+    constructor() {
+        super('SunoMasterpiece');
+    }
+
+    preload() {
+        // Imágenes de animales
+        this.load.image('cat', 'images/gato.png');
+        this.load.image('rana', 'images/rana.png');
+        this.load.image('vaca', 'images/vaca.png');
+        this.load.image('pollito', 'images/pollito.png');
+        
+        // Otros recursos
+        this.load.image('ground', 'images/ground.png');
+        this.load.image('cloud', 'images/cloud.png');
+        this.load.image('tree', 'images/tree1.png');
+        this.load.image('tree2', 'images/tree2.png');
+        this.load.image('tree3', 'images/tree3.png');
+        this.load.image('sun', 'images/sun.png');
+        this.load.image('tractor', 'images/tractor.png');
+        this.load.image('casa', 'images/casa.png');
+        this.load.image('granero', 'images/granero.png');
+        this.load.image('coche', 'images/coche.png');
+
+        this.load.image('m1', 'images/m_1.png');
+        this.load.image('m2', 'images/m_2.png');
+        this.load.image('m3', 'images/m_3.png');
+
+        this.load.image('bird', 'images/pajaro.png');
+        this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
+
+        const animalKeys = ['cat', 'rana', 'vaca', 'pollito'];
+        animalKeys.forEach(key => {
+            this.load.audio(key + '_sound', `sounds/${key}.mp3`);
+        });
+
+        this.load.audio('background_music', 'sounds/bgmusic.mp3');
+    }
+
+    create() {
+        const worldWidth = 3000;
+        const worldHeight = this.sys.game.config.height;
+        // CORRECCIÓN: Guardamos groundY en la clase para que sea accesible globalmente
+        this.groundY = worldHeight * 0.95;
+
+        this.physics.world.setBounds(0, 0, worldWidth, this.groundY + 15);
+        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+        this.bgMusic = this.sound.add('background_music', {
+            volume: 0.7,
+            loop: true
+        });
+        this.bgMusic.play();
+
+        // --- CIELO ---
+        this.add.graphics()
+        .fillGradientStyle(0xaedefc, 0xaedefc, 0xffffff, 0xffffff, 1)
+        .fillRect(0, 0, worldWidth, worldHeight)
+        .setScrollFactor(0);
+
+        // --- PARALLAX MONTAÑAS AJUSTADO ---
+        this.m1 = this.add.tileSprite(0, this.groundY, 450, 100, 'm1') 
+            .setOrigin(-2.3, 2.05)
+            .setScrollFactor(0.02)
+            .setDepth(1) 
+            .setTileScale(0.30);
+
+        this.m2 = this.add.tileSprite(0, this.groundY, 735, 170, 'm2')
+            .setOrigin(-0.8, 1.1)
+            .setScrollFactor(0.05)
+            .setDepth(2)
+            .setTileScale(0.5);
+
+        this.m3 = this.add.tileSprite(0, this.groundY, 1465, 180, 'm3')
+            .setOrigin(-0.2, 1)
+            .setScrollFactor(0.15)
+            .setDepth(3)
+            .setTileScale(1);
+
+        // --- NUBES ---
+        const numClouds = 15;
+        for (let i = 0; i < numClouds; i++) {
+            let x = Phaser.Math.Between(0, worldWidth);
+            let y = Phaser.Math.Between(50, 150);
+            let scale = Phaser.Math.FloatBetween(0.2, 0.5);
+            let cloud = this.add.image(x, y, 'cloud').setScale(scale).setAlpha(1).setDepth(3);
+            
+            this.tweens.add({
+                targets: cloud,
+                x: x + Phaser.Math.Between(30, 80),
+                duration: Phaser.Math.Between(3000, 6000),
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+            
+        }
+
+        // --- EL SOL ---
+        const screenWidth = this.sys.game.config.width;
+        const sunX = screenWidth * 0.5; 
+        const sunY = 280;
+        this.sun = this.add.image(sunX, sunY, 'sun')
+            .setOrigin(0.5)
+            .setScale(0.3)
+            .setScrollFactor(0.1);
+        
+        
+        // --- ÁRBOLES ---
+        const treeTypes = [
+            { key: 'tree', count: 3, scale: { min: 0.6, max: 0.6 } },
+            { key: 'tree2', count: 3, scale: { min: 0.5, max: 0.5 } },
+            { key: 'tree3', count: 3, scale: { min: 0.5, max: 0.5 } },
+            { key: 'granero', count: 1, scale: { min: 1.3, max: 1.3 } },
+            { key: 'tractor', count: 1, scale: { min: 0.7, max: 0.7 } },
+            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 } },
+            { key: 'coche', count: 1, scale: { min: 0.7, max: 0.7 } },
+            
+        ];
+
+        const minDistance = 350;
+        const placedX = [];
+
+        treeTypes.forEach(type => {
+            for (let i = 0; i < type.count; i++) {
+                let x;
+                let attempts = 0;
+                let tooClose;
+                do {
+                    x = Phaser.Math.Between(100, worldWidth - 100);
+                    tooClose = placedX.some(pX => Math.abs(pX - x) < minDistance);
+                    attempts++;
+                } while (tooClose && attempts < 50);
+
+                if (!tooClose || attempts === 50) {
+                    placedX.push(x);
+                    let scale = Phaser.Math.FloatBetween(type.scale.min, type.scale.max);
+                    // CORRECCIÓN: Profundidad baja para los árboles
+                    this.add.image(x, this.groundY, type.key)
+                        .setOrigin(1.12, 1.12) 
+                        .setScale(scale)
+                        .setDepth(5); 
+                }
+            }
+        });
+        // --- PÁJAROS ---
+        // Creamos un grupo físico para los pájaros
+        this.birds = this.physics.add.group({
+            allowGravity: false, // ¡Importante: los pájaros no caen!
+            collideWorldBounds: true, // Esto hace que reboten en los bordes
+            bounceX: 1, // Rebote perfecto en horizontal
+            bounceY: 1  // Rebote perfecto en vertical
+        });
+
+        for (let i = 0; i < 5; i++) {
+            // Posición inicial aleatoria en la parte superior del cielo
+            let x = Phaser.Math.Between(100, worldWidth - 100);
+            let y = Phaser.Math.Between(50, 250); // Entre 50px y 250px de altura
+            
+            let bird = this.birds.create(x, y, 'bird');
+            bird.setScale(Phaser.Math.FloatBetween(0.3, 0.5)); // Tamaño aleatorio
+            bird.setDepth(5); // Profundidad por delante de las nubes
+
+            // Les damos una velocidad inicial aleatoria
+            let vx = Phaser.Math.Between(80, 150) * (Math.random() > 0.5 ? 1 : -1);
+            let vy = Phaser.Math.Between(-30, 30);
+            bird.setVelocity(vx, vy);
+
+            // Pequeño aleteo visual (tween)
+            this.tweens.add({
+                targets: bird,
+                y: '+=10', // Se mueve 10px abajo
+                duration: Phaser.Math.Between(500, 800),
+                yoyo: true, // Vuelve arriba
+                repeat: -1, // En bucle infinito
+                ease: 'Sine.easeInOut'
+            });
+        }
+
+        // --- SUELO AJUSTADO ---
+        this.ground = this.add.tileSprite(worldWidth / 2, this.groundY, worldWidth, 64, 'ground');
+        // Cambiamos el Origin Y a 0.2 para que la parte superior del dibujo suba un poco 
+        // respecto a la línea de colisión física
+        this.ground.setOrigin(0.5, 0.5); 
+        this.ground.setTileScale(0.5);
+        this.ground.setDepth(6);
+
+        this.physics.add.existing(this.ground, true); 
+        // MODIFICA EL SEGUNDO VALOR DE setOffset PARA SUBIR O BAJAR EL COLISIONADOR
+        this.ground.body.setSize(worldWidth, 20); 
+        this.ground.body.setOffset(0, 12); // <--- TOCA ESTE "10" (más alto = animales más abajo)
+
+        // --- ANIMALES ---
+        this.animals = this.physics.add.group({
+            bounceX: 0.6,
+            bounceY: 0,
+            collideWorldBounds: true,
+            dragX: 80
+        });
+
+        const animalsData = [
+            { key: 'cat', count: 1, minScale: 0.15, maxScale: 0.15, jumpMin: -200, jumpMax: -400 },
+            { key: 'rana', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
+            { key: 'vaca', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
+            { key: 'pollito', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 }
+        ];
+
+        animalsData.forEach(type => {
+            for (let i = 0; i < type.count; i++) {
+                const x = Phaser.Math.Between(200, worldWidth - 200);
+                const y = 100;
+                const scale = Phaser.Math.FloatBetween(type.minScale, type.maxScale);
+                this.spawnAnimal(type.key, x, y, scale, type.jumpMin, type.jumpMax);
+            }
+        });
+
+        this.stars = this.add.particles(0, 0, 'star', {
+            scale: { start: 0.05, end: 0 },
+            lifespan: 600,
+            blendMode: 'ADD',
+            emitting: false
+        });
+
+        this.physics.add.collider(this.animals, this.animals, (a1, a2) => {
+            if (Math.abs(a1.body.velocity.y) > 50 || Math.abs(a1.body.velocity.x) > 50) {
+                this.stars.emitParticleAt(a1.x, a1.y, 3);
+            }
+        });
+        this.physics.add.collider(this.animals, this.ground); 
+
+        this.setupInteractions();
+
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            this.scale.startFullscreen();
+        } else {
+            this.input.once('pointerdown', () => this.scale.startFullscreen());
+        }
+    }
+
+    spawnAnimal(key, x, y, scale, jumpMin, jumpMax) {
+        const animal = this.animals.create(x, y, key);
+        animal.jumpMin = jumpMin;
+        animal.jumpMax = jumpMax;
+        animal.setInteractive({ draggable: true });
+        animal.setScale(scale);
+        animal.originalScale = scale;
+        animal.body.setSize(animal.width * 0.8, animal.height * 0.9);
+        animal.body.setOffset(animal.width * 0.1, animal.height * 0.1);
+        animal.nextDecision = 0;
+        animal.oldPos = { x: x, y: y };
+        // CORRECCIÓN: Profundidad alta para los animales
+        animal.setDepth(10); 
+        animal.body.setMaxVelocity(300, 600);
+        animal.body.setDamping(true);
+        animal.body.setDrag(80, 0);
+
+        animal.on('pointerdown', () => {
+            this.sound.play(key + '_sound');
+        });
+    }
+
+    setupInteractions() {
+        this.input.on('dragstart', (p, char) => {
+            char.isHeld = true;
+            char.body.setAllowGravity(false);
+            char.body.setVelocity(0, 0);
+            char.setAlpha(0.8);
+            this.tweens.killTweensOf(char, ['scaleX', 'scaleY']);
+            char.setScale(char.originalScale);
+        });
+
+        this.input.on('drag', (p, char, dx, dy) => {
+            char.oldPos = { x: char.x, y: char.y };
+            
+            // CORRECCIÓN: Bloqueo de eje Y para no atravesar el suelo al arrastrar
+            const limitY = this.groundY - (char.displayHeight / 2);
+            let finalY = dy > limitY ? limitY : dy;
+
+            char.setPosition(dx, finalY);
+            char.angle *= 0.6;
+        });
+
+        this.input.on('dragend', (p, char) => {
+            char.isHeld = false;
+            char.body.setAllowGravity(true);
+            char.setAlpha(1);
+            const vx = (char.x - char.oldPos.x) * 20;
+            const vy = (char.y - char.oldPos.y) * 20;
+            char.body.setVelocity(vx, vy);
+        });
+
+        this.input.on('pointermove', (p) => {
+            if (p.isDown && !this.input.hitTestPointer(p).length) {
+                this.cameras.main.scrollX -= (p.x - p.prevPosition.x);
+            }
+        });
+    }
+
+    update(time) {
+        this.animals.children.iterate(char => {
+            if (!char || char.isHeld) return;
+
+            // CORRECCIÓN: Red de seguridad para que no caigan al vacío por errores físicos
+            if (char.y > this.groundY + 100) {
+                char.y = this.groundY - 50;
+                char.body.setVelocity(0, 0);
+            }
+
+            const onGround = char.body.blocked.down || char.body.touching.down;
+            if (onGround) {
+                char.body.setVelocity(0, 0);
+                char.body.setAcceleration(0, 0);
+                char.body.angularVelocity = 0;
+                char.angle = 0;
+                char.body.allowGravity = false;
+                char.body.immovable = true;
+                char.body.moves = false;
+            } else {
+                char.body.allowGravity = true;
+                char.body.immovable = false;
+                char.body.moves = true;
+            }
+            if (onGround && time > char.nextDecision) {
+                const dir = Phaser.Math.Between(-1, 1);
+                if (dir !== 0) {
+                    char.body.setVelocityY(Phaser.Math.Between(char.jumpMin, char.jumpMax));
+                    char.body.setVelocityX(dir * 120);
+                    char.setFlipX(dir === 1);
+                }
+                char.nextDecision = time + Phaser.Math.Between(2000, 5000);
+            }
+        });
+
+        this.birds.children.iterate(bird => {
+            if (!bird) return;
+
+            // Si la velocidad X es negativa, está yendo a la IZQUIERDA
+            if (bird.body.velocity.x < 0) {
+                // Volteamos la imagen
+                bird.setFlipX(true);
+            } 
+            // Si la velocidad X es positiva, está yendo a la DERECHA
+            else if (bird.body.velocity.x > 0) {
+                // Restauramos la imagen original (mira a la derecha)
+                bird.setFlipX(false);
+            }
+
+            // Un pequeño toque extra: hacer que cambien de altura a veces
+            if (Phaser.Math.Between(0, 1000) < 5) {
+                bird.setVelocityY(Phaser.Math.Between(-20, 20));
+            }
+        });
+    }
+}
+
+const config = {
+    type: Phaser.AUTO,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: window.innerWidth,
+        height: window.innerHeight
+    },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 1200 },
+            debug: false
+        }
+    },
+    scene: SunoMasterpiece
+};
+
+new Phaser.Game(config);
+
+function checkOrientation() {
+    const notice = document.getElementById('rotateNotice');
+    if (window.innerWidth < window.innerHeight) {
+        notice.style.display = 'flex';
+    } else {
+        notice.style.display = 'none';
+    }
+}
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('load', checkOrientation);
+</script>
+
+</body>
+</html>
