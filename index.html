@@ -232,7 +232,7 @@ class SunoMasterpiece extends Phaser.Scene {
             { key: 'tree2', count: 3, scale: { min: 0.5, max: 0.5 }, offsetY: -23 },    // Baja 5px
             { key: 'tree3', count: 2, scale: { min: 0.5, max: 0.5 }, offsetY: -15 },    // En el suelo
             { key: 'granero', count: 1, scale: { min: 1.3, max: 1.3 }, offsetY: -20 },// Sube 20px
-            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -5 },
+            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -15 },
             { key: 'tractor', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
             { key: 'coche', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
         ];
@@ -261,7 +261,7 @@ class SunoMasterpiece extends Phaser.Scene {
                     let item = this.add.image(x, finalY, type.key)
                         .setOrigin(0.5, 1) 
                         .setScale(scale)
-                        .setDepth(5);
+                        .setDepth(10);
 
                     // --- SONIDOS Y HOJAS SOLO PARA ÁRBOLES ---
                     if (type.key.includes('tree')) {
@@ -486,9 +486,9 @@ class SunoMasterpiece extends Phaser.Scene {
             }
             // Si es un vehículo, encendemos el motor y humo
             if (char.isVehicle) {
+
                 if (char.engineAudio) char.engineAudio.play();
                 
-                // --- CAMBIO AQUÍ ---
                 // Traemos el sistema al frente de la lista de renderizado
                 this.children.bringToTop(this.exhaust); 
                 
@@ -512,6 +512,7 @@ class SunoMasterpiece extends Phaser.Scene {
                 // Solo permitimos movimiento en X. En Y usamos su valor fijo personal.
                 char.setPosition(dx, char.fixedY);
                 
+                
             } else {
                 // Lógica para animales (con límite de suelo)
                 const limitY = this.groundY - (char.displayHeight / 2);
@@ -529,7 +530,7 @@ class SunoMasterpiece extends Phaser.Scene {
             if (char.isVehicle) {
                 if (char.engineAudio) char.engineAudio.stop();
                 this.exhaust.stop();
-                char.setDepth(5); // Devuelve el coche a la capa de objetos
+                char.setDepth(10); // Devuelve el coche a la capa de objetos
             }
 
             if (char.currentSound) {
