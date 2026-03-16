@@ -27,7 +27,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #aedefc; /* Color del cielo para camuflar cualquier micro-borde */
+    background: #33c4fe; /* Color del cielo para camuflar cualquier micro-borde */
     position: fixed;
 }
 canvas {
@@ -172,35 +172,37 @@ class SunoMasterpiece extends Phaser.Scene {
 
         // --- CIELO ---
         this.add.graphics()
-        .fillGradientStyle(0xaedefc, 0xaedefc, 0xffffff, 0xffffff, 1)
+        .fillGradientStyle(0x33c4fe, 0x33c4fe, 0xffffff, 0xffffff, 1)
         .fillRect(0, 0, worldWidth, worldHeight)
         .setScrollFactor(0);
 
         // --- PARALLAX MONTAÑAS AJUSTADO ---
-        this.m1 = this.add.tileSprite(0, this.groundY, 450, 100, 'm1') 
-            .setOrigin(-2.3, 2.05)
-            .setScrollFactor(0.02)
-            .setDepth(1) 
-            .setTileScale(0.30);
-
-        this.m2 = this.add.tileSprite(0, this.groundY, 735, 170, 'm2')
-            .setOrigin(-0.8, 1.1)
+        this.m3 = this.add.tileSprite(0, this.groundY, worldWidth, 370, 'm3')
+            .setOrigin(0, 1)
             .setScrollFactor(0.05)
-            .setDepth(2)
-            .setTileScale(0.5);
+            .setDepth(1)
+            .setTileScale(1);
 
-        this.m3 = this.add.tileSprite(0, this.groundY, 1465, 180, 'm3')
-            .setOrigin(-0.2, 1)
-            .setScrollFactor(0.15)
+        this.m1 = this.add.tileSprite(0, this.groundY, worldWidth, 370, 'm1') 
+            .setOrigin(0, 1)
+            .setScrollFactor(0.10)
+            .setDepth(2) 
+            .setTileScale(1);
+
+        this.m2 = this.add.tileSprite(0, this.groundY, worldWidth, 371, 'm2')
+            .setOrigin(0, 1)
+            .setScrollFactor(0.20)
             .setDepth(3)
             .setTileScale(1);
 
+        
+
         // --- NUBES ---
-        const numClouds = 15;
+        const numClouds = 20;
         for (let i = 0; i < numClouds; i++) {
             let x = Phaser.Math.Between(0, worldWidth);
             let y = Phaser.Math.Between(50, 150);
-            let scale = Phaser.Math.FloatBetween(0.2, 0.5);
+            let scale = Phaser.Math.FloatBetween(0.2, 0.8);
             let cloud = this.add.image(x, y, 'cloud').setScale(scale).setAlpha(1).setDepth(3);
             
             this.tweens.add({
