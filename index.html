@@ -108,6 +108,7 @@ class SunoMasterpiece extends Phaser.Scene {
 
 
         this.load.image('bird', 'images/pajaro.png');
+        
         this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
 
         const animalKeys = ['cat', 'rana', 'vaca', 'pollito', 'caballo', 'gallina', 'conejo', 'gallo', 'perro', 'zorro', 'blaky', 'chico'];
@@ -124,7 +125,8 @@ class SunoMasterpiece extends Phaser.Scene {
 
     create() {
         // Permitimos hasta 3 toques simultáneos
-        this.input.addPointer(2);      
+        this.input.addPointer(2);
+        
 
         // Ajusta estos valores según lo que escuches
         this.volumeSettings = {
@@ -345,7 +347,7 @@ class SunoMasterpiece extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             });
         }
-
+        
         // --- SUELO AJUSTADO ---
         this.ground = this.add.tileSprite(worldWidth / 2, this.groundY, worldWidth, 64, 'ground');
         // Cambiamos el Origin Y a 0.2 para que la parte superior del dibujo suba un poco 
