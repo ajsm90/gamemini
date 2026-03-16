@@ -302,6 +302,7 @@ class SunoMasterpiece extends Phaser.Scene {
                         item.setInteractive({ draggable: true });
                         item.isVehicle = true;
                         item.fixedY = finalY;
+                        item.setDepth(20);
                         
                         // Definimos la clave del sonido (que cargaste en preload)
                         const soundKey = type.key + '_engine_sound'; 
