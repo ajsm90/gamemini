@@ -107,14 +107,7 @@ class SunoMasterpiece extends Phaser.Scene {
         this.load.image('m3', 'images/m_3.png');
 
 
-        // this.load.image('bird', 'images/pajaro.png');
-        this.load.spritesheet('bird', 'images/pajaro_a.png', { 
-            frameWidth: 395, 
-            frameHeight: 250,
-            margin: 0,
-            spacing: 0
-        });
-
+        this.load.image('bird', 'images/pajaro.png');
         this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
 
         const animalKeys = ['cat', 'rana', 'vaca', 'pollito', 'caballo', 'gallina', 'conejo', 'gallo', 'perro', 'zorro', 'blaky', 'chico'];
@@ -131,14 +124,7 @@ class SunoMasterpiece extends Phaser.Scene {
 
     create() {
         // Permitimos hasta 3 toques simultáneos
-        this.input.addPointer(2);
-        // --- ANIMACIÓN DEL PÁJARO ---
-        this.anims.create({
-            key: 'fly',
-            frames: this.anims.generateFrameNumbers('bird', { start: 0, end: 4 }),
-            frameRate: 2, // Un poco más rápido para que el aleteo sea fluido
-            repeat: -1
-        });
+        this.input.addPointer(2);      
 
         // Ajusta estos valores según lo que escuches
         this.volumeSettings = {
@@ -328,68 +314,36 @@ class SunoMasterpiece extends Phaser.Scene {
 
         // --- PÁJAROS ---
         // Creamos un grupo físico para los pájaros
-        // this.birds = this.physics.add.group({
-        //     allowGravity: false, // ¡Importante: los pájaros no caen!
-        //     collideWorldBounds: true, // Esto hace que reboten en los bordes
-        //     bounceX: 1, // Rebote perfecto en horizontal
-        //     bounceY: 1  // Rebote perfecto en vertical
-        // });
-
-        // for (let i = 0; i < 5; i++) {
-        //     // Posición inicial aleatoria en la parte superior del cielo
-        //     let x = Phaser.Math.Between(100, worldWidth - 100);
-        //     let y = Phaser.Math.Between(50, 250); // Entre 50px y 250px de altura
-            
-        //     let bird = this.birds.create(x, y, 'bird');
-        //     bird.setScale(Phaser.Math.FloatBetween(0.3, 0.5)); // Tamaño aleatorio
-        //     bird.setDepth(5); // Profundidad por delante de las nubes
-
-        //     // Les damos una velocidad inicial aleatoria
-        //     let vx = Phaser.Math.Between(80, 150) * (Math.random() > 0.5 ? 1 : -1);
-        //     let vy = Phaser.Math.Between(-30, 30);
-        //     bird.setVelocity(vx, vy);
-
-        //     // Pequeño aleteo visual (tween)
-        //     this.tweens.add({
-        //         targets: bird,
-        //         y: '+=10', // Se mueve 10px abajo
-        //         duration: Phaser.Math.Between(500, 800),
-        //         yoyo: true, // Vuelve arriba
-        //         repeat: -1, // En bucle infinito
-        //         ease: 'Sine.easeInOut'
-        //     });
-        // }
-        // --- PÁJAROS ACTUALIZADOS ---
         this.birds = this.physics.add.group({
-            allowGravity: false,
-            collideWorldBounds: true,
-            bounceX: 1,
-            bounceY: 1
+            allowGravity: false, // ¡Importante: los pájaros no caen!
+            collideWorldBounds: true, // Esto hace que reboten en los bordes
+            bounceX: 1, // Rebote perfecto en horizontal
+            bounceY: 1  // Rebote perfecto en vertical
         });
 
         for (let i = 0; i < 5; i++) {
+            // Posición inicial aleatoria en la parte superior del cielo
             let x = Phaser.Math.Between(100, worldWidth - 100);
-            let y = Phaser.Math.Between(50, 250);
+            let y = Phaser.Math.Between(50, 250); // Entre 50px y 250px de altura
             
             let bird = this.birds.create(x, y, 'bird');
-            bird.setOrigin(0.5, 0.5); // Centra el eje para que el giro (flip) sea perfecto
-            bird.setScale(0.3);       // Ajusta el tamaño a tu gusto
-            bird.play('fly');
+            bird.setScale(Phaser.Math.FloatBetween(0.3, 0.5)); // Tamaño aleatorio
+            bird.setDepth(5); // Profundidad por delante de las nubes
 
-            // Ajustar el cuerpo físico para que el área de colisión sea más pequeña que el dibujo
-            // Esto evita que choquen por los bordes transparentes del cuadrado
-            bird.body.setSize(150, 100); 
-            bird.body.setOffset(70, 50);
-
-            // ¡ESTA ES LA MAGIA!
-            bird.play('fly'); 
-
-            let vx = Phaser.Math.Between(0, 350) * (Math.random() > 0.5 ? 1 : -1);
-            let vy = Phaser.Math.Between(-60, 30);
+            // Les damos una velocidad inicial aleatoria
+            let vx = Phaser.Math.Between(80, 150) * (Math.random() > 0.5 ? 1 : -1);
+            let vy = Phaser.Math.Between(-30, 30);
             bird.setVelocity(vx, vy);
 
-            // (Opcional) Borra el this.tweens.add que movía el pájaro 10px arriba/abajo 
-            // para que el vuelo se vea más natural con la nueva animación.
+            // Pequeño aleteo visual (tween)
+            this.tweens.add({
+                targets: bird,
+                y: '+=10', // Se mueve 10px abajo
+                duration: Phaser.Math.Between(500, 800),
+                yoyo: true, // Vuelve arriba
+                repeat: -1, // En bucle infinito
+                ease: 'Sine.easeInOut'
+            });
         }
 
         // --- SUELO AJUSTADO ---
