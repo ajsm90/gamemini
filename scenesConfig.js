@@ -21,7 +21,7 @@ const SCENES_DATA = {
                 { key: 'bird', path: 'images/granja/pajaro.png', depth: 9, scale: 0.25 },
                 // { key: 'star', path: 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png', depth: 9 },
                 { key: 'm1', path: 'images/granja/m_1.png', depth: 2, scale: 1, height: 285 },
-                { key: 'm2', path: 'images/granja/m_2.png', depth: 3, scale: 1.2, height: 136 },
+                { key: 'm2', path: 'images/granja/m_2.png', depth: 3, scale: 1.2, height: 135 },
                 { key: 'm3', path: 'images/granja/m_3.png', depth: 1, scale: 1, height: 450 }
             ],
             decorations: [
@@ -132,7 +132,7 @@ const SCENES_DATA = {
                 { key: 'bird', path: 'images/selva/loro.png', depth: 9, scale: 0.2},
                 // { key: 'star', path: 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png', depth: 9 },
                 { key: 'm1', path: 'images/selva/m_1.png', depth: 2, scale: 0.55, height: 300 },
-                { key: 'm2', path: 'images/selva/m_2.png', depth: 3, scale: 0.4, height: 120},
+                { key: 'm2', path: 'images/selva/m_2.png', depth: 3, scale: 0.4, height: 126},
                 { key: 'm3', path: 'images/selva/m_3.png', depth: 1 },
             ],
             decorations: [
