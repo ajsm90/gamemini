@@ -3,678 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gamesuno2</title>
+    <title>Gamesuno2 - Engine</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
-    
+    <meta name="theme-color" content="#aedefc">
+    <meta name="msapplication-TileColor" content="#007e42">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Compra">
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 
-    <meta name="theme-color" content="#aedefc">
-    <meta name="msapplication-TileColor" content="#007e42">
-    
+    <style>
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #33c4fe; 
+            position: fixed; 
+        }
+        canvas { 
+            display: block; 
+            width: 100vw !important; 
+            height: 100vh !important; 
+            object-fit: fill; 
+        }
+        #rotateNotice { 
+            position: fixed; 
+            top:0; left:0; 
+            width:100%; height:100%; 
+            background: #e3f2fd; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            font-size: 2em; 
+            color: #333; 
+            z-index: 9999; 
+            display: none; 
+        }
+    </style>
 </head>
-
-<style>
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #33c4fe; /* Color del cielo para camuflar cualquier micro-borde */
-    position: fixed;
-}
-canvas {
-    display: block;
-    /* Forzamos que el canvas ignore cualquier cálculo extraño de márgenes */
-    width: 100vw !important;
-    height: 100vh !important;
-    object-fit: fill; 
-}
-
-/* Overlay para vertical */
-#rotateNotice {
-    position: fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background: #e3f2fd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    font-size: 2em;
-    color: #333;
-    z-index: 9999;
-    display: none;
-}
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
-
 <body>
-<div id="rotateNotice">
-    ⚠️ Gira tu dispositivo a <strong>horizontal</strong> para jugar
-</div>
+    <div id="rotateNotice">⚠️ Gira tu dispositivo a <strong>horizontal</strong> para jugar</div>
 
-<script>
-if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./service-worker.js');
-}
-// --- JUEGO PHASER ---
-class SunoMasterpiece extends Phaser.Scene {
-    constructor() {
-        super('SunoMasterpiece');
-    }
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="scenesConfig.js"></script>
 
-    preload() {
-        // Imágenes de animales
-        this.load.image('cat', 'images/gato.png');
-        this.load.image('rana', 'images/rana.png');
-        this.load.image('vaca', 'images/vaca.png');
-        this.load.image('pollito', 'images/pollito.png');
-        this.load.image('caballo', 'images/caballo.png');
-        this.load.image('gallina', 'images/gallina.png');
-        this.load.image('conejo', 'images/conejo.png');
-        this.load.image('gallo', 'images/gallo.png');
-        this.load.image('perro', 'images/perro.png');
-        this.load.image('zorro', 'images/zorro.png');
-        this.load.image('blaky', 'images/blaky.png');
-        this.load.image('chico', 'images/chico.png');
-        
-        // Otros recursos
-        this.load.image('ground', 'images/ground.png');
-        this.load.image('cloud', 'images/cloud.png');
-        this.load.image('tree', 'images/tree1.png');
-        this.load.image('tree2', 'images/tree2.png');
-        this.load.image('tree3', 'images/tree3.png');
-        this.load.image('sun', 'images/sun.png');
-        this.load.image('tractor', 'images/tractor.png');
-        this.load.image('casa', 'images/casa.png');
-        this.load.image('granero', 'images/granero.png');
-        this.load.image('coche', 'images/coche.png');
-        this.load.image('hoja', 'images/hoja.png');
+    <script>
 
-        this.load.image('m1', 'images/m_1.png');
-        this.load.image('m2', 'images/m_2.png');
-        this.load.image('m3', 'images/m_3.png');
+    // 1. ESCENA DE MENÚ (Añadida aquí al principio)
+    class MainMenu extends Phaser.Scene {
+        constructor() { super('MainMenu'); }
 
+        create() {
+            const { width, height } = this.sys.game.config;
 
-        this.load.image('bird', 'images/pajaro.png');
-        
-        this.load.image('star', 'https://png.pngtree.com/png-vector/20220824/ourmid/pngtree-star-png-vector-icon-ui-game-png-image_6121753.png');
+            // 1. Fondo azul chulo (puedes usar un degradado)
+            this.add.graphics()
+                .fillGradientStyle(0x33c4fe, 0x33c4fe, 0x1a85b5, 0x1a85b5, 1)
+                .fillRect(0, 0, width, height);
 
-        const animalKeys = ['cat', 'rana', 'vaca', 'pollito', 'caballo', 'gallina', 'conejo', 'gallo', 'perro', 'zorro', 'blaky', 'chico'];
-        animalKeys.forEach(key => {
-            this.load.audio(key + '_sound', `sounds/${key}.mp3`);
-        });
+            this.add.text(width / 2, 60, 'SELECCIONA TU AVENTURA', { 
+                fontSize: '40px', fontWeight: 'bold', fill: '#fff', 
+                stroke: '#000', strokeThickness: 6 
+            }).setOrigin(0.5);
 
-        this.load.audio('background_music', 'sounds/bgmusic.mp3');
+            // 2. Creamos un contenedor para todas las tarjetas
+            this.cardContainer = this.add.container(0, 0);
 
-        this.load.audio('arbol_sound', 'sounds/hojas_arbol.mp3'); // Sonido para árboles
-        this.load.audio('coche_engine_sound', 'sounds/coche_engine.mp3'); // Sonido para tractor/coche
-        this.load.audio('tractor_engine_sound', 'sounds/tractor_engine.mp3'); // Sonido para tractor/coche
-    }
+            // 3. Generar tarjetas automáticamente desde SCENES_DATA
+            const levelKeys = Object.keys(SCENES_DATA);
+            const cardWidth = 350;
+            const cardSpacing = 50;
+            const startX = width / 2;
 
-    create() {
-        // Permitimos hasta 3 toques simultáneos
-        this.input.addPointer(4);
-        
-
-        // Ajusta estos valores según lo que escuches
-        this.volumeSettings = {
-            'cat': 0.8,
-            'rana': 1.2,
-            'vaca': 1.2, 
-            'pollito': 1.2, 
-            'caballo': 1.2,
-            'gallina': 2.2,
-            'conejo': 1.2,
-            'gallo': 4.2,
-            'perro': 1.2,
-            'zorro': 1.2,
-            'blaky': 1.2,
-            'chico': 1.2,
-            'tractor': 2.0,
-            'coche': 2.0,
-            'arbol_sound': 2.0,
-            // Los que no pongas aquí, usarán 1.0 por defecto
-        };
-
-        
-        const circle = this.make.graphics({ x: 0, y: 0, add: false });
-        circle.fillStyle(0xffffff, 1);
-        circle.fillCircle(10, 10, 10);
-        circle.generateTexture('white_smoke', 20, 20);
-
-        const worldWidth = 3000;
-        const worldHeight = this.sys.game.config.height;
-        // CORRECCIÓN: Guardamos groundY en la clase para que sea accesible globalmente
-        this.groundY = worldHeight * 0.95;
-
-        this.physics.world.setBounds(0, 0, worldWidth, this.groundY + 15);
-        this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
-
-        this.bgMusic = this.sound.add('background_music', {
-            volume: 0.7,
-            loop: true
-        });
-        this.bgMusic.play();
-
-        
-
-        // --- CIELO ---
-        this.add.graphics()
-        .fillGradientStyle(0x33c4fe, 0x33c4fe, 0xffffff, 0xffffff, 1)
-        .fillRect(0, 0, worldWidth, worldHeight)
-        .setScrollFactor(0);
-
-        // --- PARALLAX MONTAÑAS AJUSTADO ---
-        this.m3 = this.add.tileSprite(0, this.groundY, worldWidth, 370, 'm3')
-            .setOrigin(0, 1)
-            .setScrollFactor(0.05)
-            .setDepth(1)
-            .setTileScale(1);
-
-        this.m1 = this.add.tileSprite(0, this.groundY, worldWidth, 370, 'm1') 
-            .setOrigin(0, 1)
-            .setScrollFactor(0.10)
-            .setDepth(2) 
-            .setTileScale(1);
-
-        this.m2 = this.add.tileSprite(0, this.groundY, worldWidth, 371, 'm2')
-            .setOrigin(0, 1)
-            .setScrollFactor(0.20)
-            .setDepth(3)
-            .setTileScale(1);
-
-        
-
-        // --- NUBES ---
-        const numClouds = 20;
-        for (let i = 0; i < numClouds; i++) {
-            let x = Phaser.Math.Between(0, worldWidth);
-            let y = Phaser.Math.Between(50, 150);
-            let scale = Phaser.Math.FloatBetween(0.2, 0.8);
-            let cloud = this.add.image(x, y, 'cloud').setScale(scale).setAlpha(1).setDepth(3);
-            
-            this.tweens.add({
-                targets: cloud,
-                x: x + Phaser.Math.Between(30, 80),
-                duration: Phaser.Math.Between(3000, 6000),
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
+            levelKeys.forEach((key, index) => {
+                const levelData = SCENES_DATA[key];
+                const xPos = startX + (index * (cardWidth + cardSpacing));
+                
+                const card = this.createLevelCard(xPos, height / 2, key, levelData);
+                this.cardContainer.add(card);
             });
+
+            // 4. Lógica de Scroll Horizontal
+            this.input.on('pointermove', (p) => {
+                if (p.isDown) {
+                    this.cardContainer.x += (p.x - p.prevPosition.x);
+                    
+                    // Límites para que no se pierdan las tarjetas en el infinito
+                    const minX = -(levelKeys.length - 1) * (cardWidth + cardSpacing);
+                    this.cardContainer.x = Phaser.Math.Clamp(this.cardContainer.x, minX - 100, 200);
+                }
+            });
+        }
+
+            createLevelCard(x, y, key, data) {
+                const container = this.add.container(x, y);
+                const w = 350;
+                const h = 450;
+
+                // Fondo de la tarjeta
+                const bg = this.add.graphics();
+                bg.fillStyle(0xffffff, 1);
+                bg.fillRoundedRect(-w/2, -h/2, w, h, 20);
+                bg.lineStyle(6, 0x000000, 0.2);
+                bg.strokeRoundedRect(-w/2, -h/2, w, h, 20);
+
+                // Imagen de preview
+                let preview;
+
+                // Key único para la textura de la tarjeta (puede ser el mismo que levelImage)
+                const imgKey = 'levelPreview_' + key;
+
+                const showPreview = () => {
+                    if (this.textures.exists(imgKey)) {
+                        preview = this.add.image(0, -50, imgKey).setOrigin(0.5);
+                        // Escalar para que quepa en la tarjeta
+                        const scaleX = (w - 40) / preview.width;
+                        const scaleY = 250 / preview.height;
+                        preview.setScale(Math.min(scaleX, scaleY));
+                        container.add(preview);
+                    } else {
+                        // Si falla, fondo gris con emoji
+                        preview = this.add.rectangle(0, -50, w - 40, 250, 0xeeeeee).setOrigin(0.5);
+                        const emoji = this.add.text(0, -50, data.dir === 'granja' ? '🚜' : '🐒', { fontSize: '100px' }).setOrigin(0.5);
+                        container.add(preview);
+                        container.add(emoji);
+                    }
+                };
+
+                if (!this.textures.exists(imgKey)) {
+                    // Cargar la imagen si no está en cache
+                    this.load.image(imgKey, data.levelImage);
+                    this.load.once('complete', () => {
+                        showPreview();
+                    });
+                    this.load.start();
+                } else {
+                    showPreview();
+                }
+
+                // Título del nivel
+                const title = this.add.text(0, 120, data.title || key.toUpperCase(), { 
+                    fontSize: '28px', fill: '#333', fontWeight: 'bold' 
+                }).setOrigin(0.5);
+
+                // Botón Jugar
+                const btn = this.add.rectangle(0, 180, 200, 60, 0x4caf50).setInteractive({ useHandCursor: true });
+                const btnText = this.add.text(0, 180, '¡JUGAR!', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+
+                btn.on('pointerdown', () => {
+                    this.scene.start('MasterEngine', { level: key });
+                });
+                btn.on('pointerover', () => btn.setFillStyle(0x66bb6a));
+                btn.on('pointerout', () => btn.setFillStyle(0x4caf50));
+
+                container.add([bg, title, btn, btnText]);
+                return container;
+            }
+        }
+    class MasterEngine extends Phaser.Scene {
+        constructor() { super('MasterEngine'); }
+
+        init(data) {
+            // --- LIMPIEZA TOTAL DEL CACHE ---
+            // Esto elimina todas las imágenes y audios cargados previamente
+            // para que no se mezclen entre niveles (pájaro vs loro, etc.)
+            this.textures.removeKey('ground');
+            this.textures.removeKey('sun');
+            this.textures.removeKey('cloud');
+            this.textures.removeKey('bird');
+            this.textures.removeKey('hoja');
+            this.textures.removeKey('m1');
+            this.textures.removeKey('m2');
+            this.textures.removeKey('m3');
+
+            // También limpiamos los animales y decoraciones dinámicamente
+            if (this.cfg) {
+                this.cfg.animals.forEach(ani => {
+                    this.textures.removeKey(ani.key);
+                    this.cache.audio.remove(ani.key + '_sound');
+                });
+                this.cfg.assets.decorations.forEach(dec => {
+                    this.textures.removeKey(dec.key);
+                    this.cache.audio.remove(dec.key + '_engine_sound');
+                });
+                if (this.cfg.jumpSounds) {
+                    this.cfg.jumpSounds.forEach(key => {
+                        this.cache.audio.remove(key);
+                    });
+                }
+                // --- LIMPIAR MÚSICA DE FONDO ---
+                if (this.backgroundMusic) {
+                    this.backgroundMusic.stop();
+                    this.backgroundMusic.destroy();
+                    this.backgroundMusic = null;
+                }
+                this.cache.audio.remove('background_music');
+                // --- LIMPIAR IMÁGENES DE TARJETAS DE NIVELES ---
+                Object.keys(SCENES_DATA).forEach(levelKey => {
+                    const previewKey = 'levelPreview_' + levelKey;
+                    if (this.textures.exists(previewKey)) {
+                        this.textures.removeKey(previewKey);
+                    }
+                });
+            }
+
+            // --- CONFIGURACIÓN DEL NIVEL ---
+            const levelKey = data.level || 'granja'; 
+            this.cfg = SCENES_DATA[levelKey]; 
+
+            this.groundY = 0;
+            this.dir = this.cfg.dir;
+            this.edgeThreshold = 25;
+            this.scrollSpeed = this.cfg.scrollSpeed || 10;
+        }
+
+        preload() {
+            // Carga de imágenes de sistema
+            this.cfg.assets.images.forEach(img => this.load.image(img.key, img.path));
+            
+            // Carga de decoraciones y sus rutas
+            this.cfg.assets.decorations.forEach(dec => this.load.image(dec.key, dec.path));
+
+            // Carga de animales e imágenes/sonidos
+            this.cfg.animals.forEach(ani => {
+                this.load.image(ani.key, ani.path);
+                this.load.audio(ani.key + '_sound', `sounds/${this.dir}/${ani.key}.mp3`);
+            });
+
+            // Carga de audio general (música y sonidos de motor específicos)
+            this.cfg.assets.audio.forEach(aud => this.load.audio(aud.key, aud.path));
             
         }
 
-        // --- EL SOL ---
-        const screenWidth = this.sys.game.config.width;
-        const sunX = screenWidth * 0.5; 
-        const sunY = 280;
-        this.sun = this.add.image(sunX, sunY, 'sun')
-            .setOrigin(0.5)
-            .setScale(0.3)
-            .setScrollFactor(0.1);
-        
-        
-        // --- ÁRBOLES Y VEHÍCULOS ---
-        const treeTypes = [
-            { key: 'tree', count: 3, scale: { min: 0.6, max: 0.6 }, offsetY: -18 },   // Sube 10px
-            { key: 'tree2', count: 3, scale: { min: 0.5, max: 0.5 }, offsetY: -23 },    // Baja 5px
-            { key: 'tree3', count: 2, scale: { min: 0.5, max: 0.5 }, offsetY: -15 },    // En el suelo
-            { key: 'granero', count: 1, scale: { min: 1.3, max: 1.3 }, offsetY: -20 },// Sube 20px
-            { key: 'casa', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -15 },
-            { key: 'tractor', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
-            { key: 'coche', count: 1, scale: { min: 0.7, max: 0.7 }, offsetY: -20 },
-        ];
+        create() {
+            
+            this.input.addPointer(4);
+            const worldWidth = this.cfg.worldWidth;
+            const worldHeight = this.sys.game.config.height;
+            this.groundY = worldHeight * 0.95;
 
-        const minDistance = 350;
-        const placedX = [];
+            this.physics.world.setBounds(0, 0, worldWidth, this.groundY + 15);
+            this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
-        treeTypes.forEach(type => {
-            for (let i = 0; i < type.count; i++) {
-                let x;
-                let attempts = 0;
-                let tooClose;
-                do {
-                    x = Phaser.Math.Between(100, worldWidth - 100);
-                    tooClose = placedX.some(pX => Math.abs(pX - x) < minDistance);
-                    attempts++;
-                } while (tooClose && attempts < 50);
+            this.bgMusic = this.sound.add('background_music', { volume: 0.7, loop: true });
+            this.bgMusic.play();
 
-                if (!tooClose || attempts === 50) {
-                    placedX.push(x);
-                    let scale = Phaser.Math.FloatBetween(type.scale.min, type.scale.max);
+            // Fondo
+            this.add.graphics()
+                .fillGradientStyle(this.cfg.skyGradient.top, this.cfg.skyGradient.top, this.cfg.skyGradient.bottom, this.cfg.skyGradient.bottom, 1)
+                .fillRect(0, 0, worldWidth, worldHeight).setScrollFactor(0);
+
+            this.createEnvironment(worldWidth);
+            this.createSkyObjects(worldWidth); // <--- NUEVA FUNCIÓN LLAMADA AQUÍ
+            this.createSystems();
+            this.createObjects();
+            this.setupInteractions();
+
+            // --- BOTÓN HOME ---
+            const homeBtn = this.add.text(40, 40, '🏠', { 
+                fontSize: '20px', 
+                backgroundColor: '#ffffffaa', 
+                padding: 10,
+                borderRadius: '10px'
+            })
+            .setInteractive({ useHandCursor: true })
+            .setScrollFactor(0) // <--- ESTO ES LO MÁS IMPORTANTE (lo fija a la pantalla)
+            .setDepth(2000);    // Siempre por encima de todo
+
+            homeBtn.on('pointerdown', () => {
+                // Detenemos la música si está sonando para que no se solape al volver a entrar
+                if (this.bgMusic) this.bgMusic.stop();
+                
+                // Volvemos a la escena del menú
+                this.scene.start('MainMenu');
+            });
+
+            // Efecto visual al pasar el ratón
+            homeBtn.on('pointerover', () => homeBtn.setScale(1.1));
+            homeBtn.on('pointerout', () => homeBtn.setScale(1));
+        }
+
+        createSkyObjects(worldWidth) {
+            const sky = this.cfg.skyObjects;
+            if (!sky) return;
+
+            // NUBES DINÁMICAS
+            if (sky.clouds) {
+                for (let i = 0; i < sky.clouds.count; i++) {
+                    let x = Phaser.Math.Between(0, worldWidth);
+                    let y = Phaser.Math.Between(50, 180);
+                    let cloud = this.add.image(x, y, sky.clouds.key).setScale(Phaser.Math.FloatBetween(0.3, 0.8))
+                    .setDepth(this.cfg.assets.images.find(i => i.key === sky.clouds.key)?.depth || 3);
+                    this.tweens.add({
+                        targets: cloud,
+                        x: x + Phaser.Math.Between(40, 90),
+                        duration: sky.clouds.speed || 5000,
+                        yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+                    });
+                }
+            }
+
+            // PÁJAROS DINÁMICOS
+            // Accedemos a la configuración de los objetos del cielo
+            const skyConfig = this.cfg.skyObjects; 
+
+            if (skyConfig && skyConfig.birds) {
+                this.birdsGroup = this.physics.add.group({ 
+                    allowGravity: false, 
+                    collideWorldBounds: true, 
+                    bounceX: 1, 
+                    bounceY: 1 
+                });
+
+                // Buscamos la info del asset una sola vez para ahorrar recursos
+                const birdAsset = this.cfg.assets.images.find(i => i.key === skyConfig.birds.key) || {};
+                const finalScale = birdAsset.scale || skyConfig.birds.scale || 0.4;
+                const finalDepth = birdAsset.depth || 5;
+
+                for (let i = 0; i < skyConfig.birds.count; i++) {
+                    let bird = this.birdsGroup.create(
+                        Phaser.Math.Between(100, worldWidth - 100), 
+                        Phaser.Math.Between(50, 250), 
+                        skyConfig.birds.key
+                    );
+
+                    // Ahora aplicamos la escala que viene del asset (4.05)
+                    bird.setScale(finalScale);
+                    bird.setDepth(finalDepth);
+
+                    // Velocidad inicial y flip según dirección
+                    let vx = Phaser.Math.Between(80, 160) * (Math.random() > 0.5 ? 1 : -1);
+                    bird.setVelocity(vx, Phaser.Math.Between(-20, 20));
                     
-                    // Calculamos la posición Y base + su offset personal
-                    const finalY = this.groundY + (type.offsetY || 0);
+                    // Si vuela hacia la izquierda, giramos la imagen
+                    if (vx < 0) bird.setFlipX(true);
 
-                    let item = this.add.image(x, finalY, type.key)
-                        .setOrigin(0.5, 1) 
-                        .setScale(scale)
-                        .setDepth(10);
+                    // Aleteo visual
+                    this.tweens.add({ 
+                        targets: bird, 
+                        y: '+=10', 
+                        duration: 600, 
+                        yoyo: true, 
+                        repeat: -1, 
+                        ease: 'Sine.easeInOut' 
+                    });
+                }
+            }
+        }
 
-                    // --- SONIDOS Y HOJAS SOLO PARA ÁRBOLES ---
-                    if (type.key.includes('tree')) {
-                        item.setInteractive();
-                        item.on('pointerdown', () => {
-                            const vol = this.volumeSettings['arbol_sound'] || 1.0; 
-        
-                            this.sound.play('arbol_sound', { volume: vol });
+        createEnvironment(worldWidth) {
+            // Función mejorada para obtener todos los datos de un asset por su clave
+            const getAsset = (key) => this.cfg.assets.images.find(i => i.key === key) || {};
 
-                            // Definimos un área (rectángulo) basada en el tamaño del árbol actual
-                            // Lo situamos un poco hacia arriba para que coincida con las hojas
-                            const area = new Phaser.Geom.Rectangle(
-                                item.x - (item.displayWidth / 4), // Izquierda
-                                item.y - (item.displayHeight * 0.8), // Arriba
-                                item.displayWidth / 2, // Ancho del área
-                                item.displayHeight / 3 // Alto del área
-                            );
+            // --- MONTAÑA 3 (FONDO MÁS LEJANO) ---
+            const m3 = getAsset('m3');
+            this.add.tileSprite(0, this.groundY, worldWidth, m3.height || 370, 'm3')
+                .setOrigin(0, 1.14)
+                .setScrollFactor(0.05)
+                .setDepth(m3.depth || 1)
+                .setTileScale(m3.scale || 1);
 
-                            // Lanzamos partículas aleatoriamente DENTRO de ese rectángulo
-                            for(let i = 0; i < 15; i++) {
-                                let p = area.getRandomPoint();
-                                this.leafEmitter.emitParticleAt(p.x, p.y);
+            // --- MONTAÑA 1 (MEDIO FONDO) ---
+            const m1 = getAsset('m1');
+            this.add.tileSprite(0, this.groundY, worldWidth, m1.height || 370, 'm1')
+                .setOrigin(0, 1.14)
+                .setScrollFactor(0.10)
+                .setDepth(m1.depth || 2)
+                .setTileScale(m1.scale || 1);
+
+            // --- MONTAÑA 2 (MÁS CERCANA) ---
+            const m2 = getAsset('m2');
+            this.add.tileSprite(0, this.groundY, worldWidth, m2.height || 371, 'm2')
+                .setOrigin(0, 1.14)
+                .setScrollFactor(0.20)
+                .setDepth(m2.depth || 3)
+                .setTileScale(m2.scale || 1);
+
+            // --- SUELO (GROUND) ---
+            const ground = getAsset('ground');
+            this.add.tileSprite(0, this.groundY, worldWidth, ground.height || 120, 'ground')
+                .setOrigin(0, 0.70)
+                .setScrollFactor(1)
+                .setDepth(ground.depth || 4)
+                .setTileScale(ground.scale || 0.5);
+
+            // --- SOL (IMAGEN NORMAL) ---
+            const sun = getAsset('sun');
+            this.add.image(this.sys.game.config.width * 0.5, 280, 'sun')
+                .setScale(sun.scale || 0.3)
+                .setScrollFactor(0.1)
+                .setDepth(sun.depth || 1);
+        }
+
+        createSystems() {
+            // Smoke texture
+            const circle = this.make.graphics({ x: 0, y: 0, add: false }).fillStyle(0xffffff, 1).fillCircle(10, 10, 10);
+            circle.generateTexture('white_smoke', 20, 20);
+            
+            this.exhaust = this.add.particles(0, 0, 'white_smoke', {
+                scale: { start: 0.6, end: 0 }, alpha: { start: 0.6, end: 0 }, lifespan: 1200, speed: { min: 30, max: 70 },
+                angle: { min: 200, max: 340 }, gravityY: -80, frequency: 15, quantity: 5, emitting: false
+            }).setDepth(10);
+
+            this.leafEmitter = this.add.particles(0, 0, undefined, {
+                scale: { start: 0.6, end: 0.3 }, alpha: { start: 1, end: 0 }, lifespan: 2000, speed: { min: 50, max: 100 },
+                gravityY: 150, rotate: { min: 0, max: 360 }, emitting: false
+            }).setDepth(11);
+
+            this.stars = this.add.particles(0, 0, 'star', { scale: { start: 0.05, end: 0 }, lifespan: 600, blendMode: 'ADD', emitting: false });
+
+            this.ground = this.add.rectangle(this.cfg.worldWidth/2, this.groundY + 40, this.cfg.worldWidth, 80, 0x000, 0);
+            this.physics.add.existing(this.ground, true);
+        }
+
+        createObjects() {
+            const placedPositions = []; // Array para guardar las X ocupadas
+            const minDistance = 80;    // Distancia mínima en píxeles entre objetos
+
+            this.cfg.assets.decorations.forEach(dec => {
+                for (let i = 0; i < dec.count; i++) {
+                    let x;
+                    let attempts = 0;
+                    let foundSpace = false;
+
+                    // Intentamos encontrar una posición libre (máximo 50 intentos para no bloquear el juego)
+                    while (attempts < 50 && !foundSpace) {
+                        x = Phaser.Math.Between(200, this.cfg.worldWidth - 200);
+                        
+                        // Comprobamos si está lejos de todos los objetos ya colocados
+                        const tooClose = placedPositions.some(pos => Math.abs(pos - x) < minDistance);
+                        
+                        if (!tooClose) {
+                            foundSpace = true;
+                            placedPositions.push(x); // Guardamos la posición
+                        }
+                        attempts++;
+                    }
+
+                    // Si después de los intentos no hay sitio, usamos la última X generada igualmente
+                    let item = this.add.image(x, this.groundY + dec.offsetY, dec.key)
+                        .setOrigin(0.5, 1)
+                        .setScale(dec.scale)
+                        .setDepth(dec.depth || 10);
+                    
+                    // Guardamos el depth original en el objeto para recuperarlo después del drag
+                    item.originalDepth = dec.depth || 10;
+
+                    if (dec.type === 'tree') {
+                        item.setInteractive().on('pointerdown', () => {
+
+                            this.sound.play('arbol_sound', { volume: 1.5 });
+
+                            const textureToUse = dec.leafKey || 'hoja';
+                            this.leafEmitter.setTexture(textureToUse);
+
+                            // 👇 CONFIG PERSONALIZADA
+                            const cfg = dec.leafConfig || {};
+
+                            const count = cfg.count || 30;
+                            const offsetX = cfg.offsetX || 60;
+                            const offsetY = cfg.offsetY || { min: 80, max: 120 };
+
+                            // 👇 aplicar escala dinámica
+                            if (cfg.scale) {
+                                this.leafEmitter.setConfig({
+                                    scale: cfg.scale || { start: 0.6, end: 0.3 },
+                                    speed: cfg.speed || { min: 50, max: 100 },
+                                    gravityY: cfg.gravityY || 150,
+                                    rotate: cfg.rotate || { min: 0, max: 360 }
+                                });
                             }
 
-                            // Efecto visual de vibración
-                            this.tweens.add({
-                                targets: item,
-                                angle: { from: -2, to: 2 },
-                                duration: 50,
-                                yoyo: true,
-                                repeat: 3
+                            for(let j = 0; j < count; j++) {
+                                let randomX = item.x + Phaser.Math.Between(-offsetX, offsetX);
+                                let randomY = item.y - Phaser.Math.Between(offsetY.min, offsetY.max);
+
+                                this.leafEmitter.emitParticleAt(randomX, randomY);
+                            }
+
+                            this.tweens.add({ 
+                                targets: item, 
+                                angle: { from: -3, to: 3 }, 
+                                scaleX: '*=1.02',
+                                duration: 60, 
+                                yoyo: true, 
+                                repeat: 3 
                             });
                         });
                     }
-
-                    // --- CONFIGURACIÓN DE VEHÍCULOS ---
-                    if (type.key === 'tractor' || type.key === 'coche') {
+                    else if (dec.type === 'vehicle') {
                         item.setInteractive({ draggable: true });
                         item.isVehicle = true;
-                        item.fixedY = finalY;
-                        item.setDepth(20);
-                        
-                        // Definimos la clave del sonido (que cargaste en preload)
-                        const soundKey = type.key + '_engine_sound'; 
-                        const customVol = this.volumeSettings[type.key] || 0.3; 
-
-                        item.engineAudio = this.sound.add(soundKey, { 
-                            loop: true, 
-                            volume: customVol 
-                        });
+                        item.fixedY = item.y;
+                        if (this.cache.audio.exists(dec.key + '_engine_sound')) {
+                            item.engineAudio = this.sound.add(dec.key + '_engine_sound', { loop: true, volume: dec.vol || 1.0 });
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // --- PÁJAROS ---
-        // Creamos un grupo físico para los pájaros
-        this.birds = this.physics.add.group({
-            allowGravity: false, // ¡Importante: los pájaros no caen!
-            collideWorldBounds: true, // Esto hace que reboten en los bordes
-            bounceX: 1, // Rebote perfecto en horizontal
-            bounceY: 1  // Rebote perfecto en vertical
-        });
-
-        for (let i = 0; i < 5; i++) {
-            // Posición inicial aleatoria en la parte superior del cielo
-            let x = Phaser.Math.Between(100, worldWidth - 100);
-            let y = Phaser.Math.Between(50, 250); // Entre 50px y 250px de altura
-            
-            let bird = this.birds.create(x, y, 'bird');
-            bird.setScale(Phaser.Math.FloatBetween(0.3, 0.5)); // Tamaño aleatorio
-            bird.setDepth(5); // Profundidad por delante de las nubes
-
-            // Les damos una velocidad inicial aleatoria
-            let vx = Phaser.Math.Between(80, 150) * (Math.random() > 0.5 ? 1 : -1);
-            let vy = Phaser.Math.Between(-30, 30);
-            bird.setVelocity(vx, vy);
-
-            // Pequeño aleteo visual (tween)
-            this.tweens.add({
-                targets: bird,
-                y: '+=10', // Se mueve 10px abajo
-                duration: Phaser.Math.Between(500, 800),
-                yoyo: true, // Vuelve arriba
-                repeat: -1, // En bucle infinito
-                ease: 'Sine.easeInOut'
+            // Animales
+            this.animals = this.physics.add.group({ bounceX: 0.5, bounceY: 0.1 });
+            this.cfg.animals.forEach(ani => {
+                let a = this.animals.create(Phaser.Math.Between(200, this.cfg.worldWidth - 200), 100, ani.key).setScale(ani.scale).setInteractive({ draggable: true });                a.minY = this.groundY + ani.groundRange[0];
+                a.maxY = this.groundY + ani.groundRange[1];
+                a.currentTargetY = Phaser.Math.Between(a.minY, a.maxY);
+                a.jumpPower = ani.jump;
+                a.currentSound = this.sound.add(ani.key + '_sound', { volume: ani.vol });
+                
+                // CAMBIO 1: Aumentamos el drag para que no patinen eternamente
+                a.body.setDragX(0); // <--- Sin fricción inicial para que vuele bien
+                a.body.setCollideWorldBounds(true);
+                a.body.setBounce(0.5, 0.2); // <--- Le damos un poco de rebote para que parezca una pelota
+                
+                a.setDepth(ani.depth || 100);
+                a.nextDecision = 0;
             });
         }
-        
-        // --- SUELO AJUSTADO ---
-        this.ground = this.add.tileSprite(worldWidth / 2, this.groundY, worldWidth, 64, 'ground');
-        // Cambiamos el Origin Y a 0.2 para que la parte superior del dibujo suba un poco 
-        // respecto a la línea de colisión física
-        this.ground.setOrigin(0.5, 0.5); 
-        this.ground.setTileScale(0.5);
-        this.ground.setDepth(6);
 
-        this.physics.add.existing(this.ground, true); 
-        // MODIFICA EL SEGUNDO VALOR DE setOffset PARA SUBIR O BAJAR EL COLISIONADOR
-        this.ground.body.setSize(worldWidth, 20); 
-        this.ground.body.setOffset(0, 12); // <--- TOCA ESTE "10" (más alto = animales más abajo)
-
-        // --- ANIMALES ---
-        this.animals = this.physics.add.group({
-            bounceX: 0.6,
-            bounceY: 0,
-            collideWorldBounds: true,
-            dragX: 80
-        });
-
-        const animalsData = [
-            { key: 'cat', count: 1, minScale: 0.15, maxScale: 0.15, jumpMin: -200, jumpMax: -400 },
-            { key: 'rana', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
-            { key: 'vaca', count: 1, minScale: 0.8, maxScale: 0.8, jumpMin: -200, jumpMax: -400 },
-            { key: 'pollito', count: 1, minScale: 0.6, maxScale: 0.6, jumpMin: -200, jumpMax: -400 },
-            { key: 'caballo', count: 1, minScale: 0.4, maxScale: 0.4, jumpMin: -200, jumpMax: -400 },
-            { key: 'gallina', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
-            { key: 'conejo', count: 1, minScale: 0.27, maxScale: 0.27, jumpMin: -200, jumpMax: -400 },
-            { key: 'gallo', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
-            { key: 'perro', count: 1, minScale: 0.25, maxScale: 0.25, jumpMin: -200, jumpMax: -400 },
-            { key: 'zorro', count: 1, minScale: 0.2, maxScale: 0.2, jumpMin: -200, jumpMax: -400 },
-            { key: 'blaky', count: 1, minScale: 0.1, maxScale: 0.1, jumpMin: -200, jumpMax: -400 },
-            { key: 'chico', count: 1, minScale: 0.12, maxScale: 0.12, jumpMin: -200, jumpMax: -400 },
-        ];
-
-        
-
-        animalsData.forEach(type => {
-            for (let i = 0; i < type.count; i++) {
-                const x = Phaser.Math.Between(200, worldWidth - 200);
-                const y = 100;
-                const scale = Phaser.Math.FloatBetween(type.minScale, type.maxScale);
-                this.spawnAnimal(type.key, x, y, scale, type.jumpMin, type.jumpMax);
-            }
-        });
-
-        this.stars = this.add.particles(0, 0, 'star', {
-            scale: { start: 0.05, end: 0 },
-            lifespan: 600,
-            blendMode: 'ADD',
-            emitting: false
-        });
-
-        this.physics.add.collider(this.animals, this.animals, (a1, a2) => {
-            if (Math.abs(a1.body.velocity.y) > 50 || Math.abs(a1.body.velocity.x) > 50) {
-                this.stars.emitParticleAt(a1.x, a1.y, 3);
-            }
-        });
-        this.physics.add.collider(this.animals, this.ground); 
-
-        this.setupInteractions();
-
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            this.scale.startFullscreen();
-        } else {
-            this.input.once('pointerdown', () => this.scale.startFullscreen());
-        }
-
-        // 2. Sistema de Humo para vehículos
-        this.exhaust = this.add.particles(0, 0, 'white_smoke', {
-            scale: { start: 0.6, end: 0, random: true },
-            rotate: { min: 0, max: 360, delta: 2 },
-            alpha: { start: 0.6, end: 0 },
-            lifespan: 1200,                  // Duran un poco más en el aire
-            speed: { min: 30, max: 70 },
-            angle: { min: 200, max: 340 },   // Ángulo más cerrado hacia arriba
-            gravityY: -80,                   // Flotan hacia arriba más rápido
-            
-            // --- LOS CAMBIOS PARA MÁS CANTIDAD ---
-            frequency: 15,                   // ¡MENOS es MÁS! Sale una partícula cada 20ms
-            quantity: 5,                     // Salen de 2 en 2 en cada ráfaga
-            
-            blendMode: 'NORMAL',
-            tint: 0xdddddd, 
-            emitting: false
-        });
-        this.exhaust.setDepth(10);
-
-        this.leafEmitter = this.add.particles(0, 0, 'hoja', {
-            scale: { start: 0.6, end: 0.3 },
-            alpha: { start: 1, end: 0 },
-            lifespan: 2000,
-            speed: { min: 50, max: 100 },
-            angle: { min: 0, max: 360 },
-            gravityY: 150,     // Las hojas caen hacia abajo
-            rotate: { min: 0, max: 360 }, // Las hojas van girando mientras caen
-            emitting: false,    // Solo salen cuando tocamos el árbol
-            x: { min: -20, max: 200 },
-        });
-        this.leafEmitter.setDepth(10);
-    }
-
-    spawnAnimal(key, x, y, scale, jumpMin, jumpMax) {
-        const animal = this.animals.create(x, y, key);
-        animal.jumpMin = jumpMin;
-        animal.jumpMax = jumpMax;
-        animal.setInteractive({ draggable: true });
-        animal.setScale(scale);
-        animal.originalScale = scale;
-        animal.body.setSize(animal.width * 0.8, animal.height * 0.9);
-        animal.body.setOffset(animal.width * 0.1, animal.height * 0.1);
-        animal.nextDecision = 0;
-        animal.oldPos = { x: x, y: y };
-        // CORRECCIÓN: Profundidad alta para los animales
-        animal.setDepth(10); 
-        animal.body.setMaxVelocity(300, 600);
-        animal.body.setDamping(true);
-        animal.body.setDrag(80, 0);
-        const customVolume = this.volumeSettings[key];
-        animal.currentSound = this.sound.add(key + '_sound', { volume: customVolume });
-    }
-
-    setupInteractions() {
-        this.input.on('dragstart', (p, char) => {
-            char.isHeld = true;
-            if (char.body) {
-                char.body.setAllowGravity(false);
-                char.body.setVelocity(0, 0);
-            }
-            // --- AUDIO SIMPLE ---
-            if (!char.isVehicle && char.currentSound) {
-                char.currentSound.play(); // Reproduce desde el inicio
-            }
-            // Si es un vehículo, encendemos el motor y humo
-            if (char.isVehicle) {
-
-                if (char.engineAudio) char.engineAudio.play();
-                
-                // Traemos el sistema al frente de la lista de renderizado
-                this.children.bringToTop(this.exhaust); 
-                
-                // Ponemos los animales en 10, árboles en 5. 
-                // Si ponemos el humo en el depth del coche (que es 5), se verá tras los árboles.
-                // Así que subimos el coche y el humo temporalmente mientras arrastras:
-                char.setDepth(20); 
-                this.exhaust.setDepth(19); // Justo detrás del coche, pero delante de árboles(5) y animales(10)
-                
-                this.exhaust.startFollow(char, -char.displayWidth * -0.4, -25); 
-                this.exhaust.start();
-            }
-            // Eliminado char.setAlpha(0.8)
-            this.tweens.killTweensOf(char, ['scaleX', 'scaleY']);
-        });
-
-        this.input.on('drag', (p, char, dx, dy) => {
-            char.oldPos = { x: char.x, y: char.y };
-            
-            if (char.isVehicle) {
-                // Solo permitimos movimiento en X. En Y usamos su valor fijo personal.
-                char.setPosition(dx, char.fixedY);
-                
-                
-            } else {
-                // Lógica para animales (con límite de suelo)
-                const limitY = this.groundY - (char.displayHeight / 2);
-                let finalY = dy > limitY ? limitY : dy;
-                char.setPosition(dx, finalY);
-            }
-            char.angle *= 0.6;
-        });
-
-        this.input.on('dragend', (p, char) => {
-            char.isHeld = false;
-            // Eliminado char.setAlpha(1)
-            
-            // SI ES VEHÍCULO: Apagar motor y humo
-            if (char.isVehicle) {
-                if (char.engineAudio) char.engineAudio.stop();
-                this.exhaust.stop();
-                char.setDepth(10); // Devuelve el coche a la capa de objetos
-            }
-
-            if (char.currentSound) {
-                char.currentSound.stop();
-                // IMPORTANTE: NO uses .destroy() aquí, porque queremos reusarlo luego
-            }
-
-            if (char.body) {
-                char.body.setAllowGravity(true);
-                const vx = (char.x - char.oldPos.x) * 20;
-                const vy = (char.y - char.oldPos.y) * 20;
-                char.body.setVelocity(vx, vy);
-            }
-        });
-
-        this.input.on('pointermove', (p) => {
-            // Si el puntero está pulsado, NO está arrastrando ningún objeto 
-            // y no hay nada bajo él, entonces movemos la cámara.
-            if (p.isDown && !p.dragState && !this.input.hitTestPointer(p).length) {
-                this.cameras.main.scrollX -= (p.x - p.prevPosition.x);
-            }
-        });
-    }
-
-    update(time) {
-        this.animals.children.iterate(char => {
-            if (!char || char.isHeld) return;
-
-            // CORRECCIÓN: Red de seguridad para que no caigan al vacío por errores físicos
-            if (char.y > this.groundY + 100) {
-                char.y = this.groundY - 50;
-                char.body.setVelocity(0, 0);
-            }
-
-            const onGround = char.body.blocked.down || char.body.touching.down;
-            if (onGround) {
-                char.body.setVelocity(0, 0);
-                char.body.setAcceleration(0, 0);
-                char.body.angularVelocity = 0;
-                char.angle = 0;
-                char.body.allowGravity = false;
-                char.body.immovable = true;
-                char.body.moves = false;
-            } else {
-                char.body.allowGravity = true;
-                char.body.immovable = false;
-                char.body.moves = true;
-            }
-            if (onGround && time > char.nextDecision) {
-                const dir = Phaser.Math.Between(-1, 1);
-                if (dir !== 0) {
-                    char.body.setVelocityY(Phaser.Math.Between(char.jumpMin, char.jumpMax));
-                    char.body.setVelocityX(dir * 120);
-                    char.setFlipX(dir === 1);
+        setupInteractions() {
+            this.input.on('dragstart', (p, obj) => {
+                obj.isHeld = true;
+                if (obj.body) { obj.body.setAllowGravity(false); obj.body.setVelocity(0,0); }
+                if (obj.isVehicle && obj.engineAudio) {
+                    obj.engineAudio.play();
+                    const originalDepth = this.cfg.assets.decorations.find(d => d.key === obj.texture.key)?.depth || 10;
+                    obj.setDepth(originalDepth);
+                    this.exhaust.startFollow(obj, -obj.displayWidth * -0.4, -25);
+                    this.exhaust.start();
+                } else if (obj.currentSound) {
+                    obj.currentSound.play();
                 }
-                char.nextDecision = time + Phaser.Math.Between(2000, 5000);
-            }
-        });
+            });
 
-        this.birds.children.iterate(bird => {
-            if (!bird) return;
+            this.input.on('drag', (p, obj, dx, dy) => {
+                obj.oldPos = { x: obj.x, y: obj.y };
+                if (obj.isVehicle) { obj.setPosition(dx, obj.fixedY); }
+                else {
+                    const limitY = this.groundY - (obj.displayHeight / 2);
+                    obj.setPosition(dx, dy > limitY ? limitY : dy);
+                }
+            });
 
-            // Si la velocidad X es negativa, está yendo a la IZQUIERDA
-            if (bird.body.velocity.x < 0) {
-                // Volteamos la imagen
-                bird.setFlipX(true);
-            } 
-            // Si la velocidad X es positiva, está yendo a la DERECHA
-            else if (bird.body.velocity.x > 0) {
-                // Restauramos la imagen original (mira a la derecha)
-                bird.setFlipX(false);
-            }
+            this.input.on('dragend', (p, obj) => {
+                obj.isHeld = false;
+                if (obj.isVehicle) { 
+                    if(obj.engineAudio) obj.engineAudio.stop(); 
+                    this.exhaust.stop(); 
+                    
+                    const originalDepth = this.cfg.assets.decorations.find(d => d.key === obj.texture.key)?.depth || 10;
+                    obj.setDepth(originalDepth);
+                } else if (obj.currentSound) {
+                    obj.currentSound.stop();
+                }
+                if (obj.body) {
+                    obj.body.setAllowGravity(true);
+                    obj.body.setVelocity((obj.x - obj.oldPos.x) * 20, (obj.y - obj.oldPos.y) * 20);
+                }
+            });
 
-            // Un pequeño toque extra: hacer que cambien de altura a veces
-            if (Phaser.Math.Between(0, 1000) < 5) {
-                bird.setVelocityY(Phaser.Math.Between(-20, 20));
-            }
-        });
-    }
-}
+            this.input.on('pointermove', (p) => {
+                if (p.isDown && !p.dragState && !this.input.hitTestPointer(p).length) {
+                    this.cameras.main.scrollX -= (p.x - p.prevPosition.x);
+                }
+            });
 
-// Usamos una altura fija para mantener la escala de los personajes
-const CANONICAL_HEIGHT = 720; 
-
-// Calculamos el ratio real del dispositivo
-const widthReal = window.innerWidth;
-const heightReal = window.innerHeight;
-const aspectRatio = widthReal / heightReal;
-
-// Calculamos el ancho virtual basándonos en la proporción exacta
-// Usamos Math.ceil para asegurarnos de que el juego siempre "sobre un poquito" y no "falte"
-const dynamicWidth = Math.ceil(CANONICAL_HEIGHT * aspectRatio);
-
-const config = {
-    type: Phaser.AUTO,
-    scale: {
-        // FIT ajustará el CANONICAL_HEIGHT (720) al alto real del móvil (100%)
-        mode: Phaser.Scale.FIT, 
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: dynamicWidth,
-        height: CANONICAL_HEIGHT,
-    },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 1200 },
-            debug: false
+            this.physics.add.collider(this.animals, this.ground);
         }
-    },
-    scene: SunoMasterpiece
-};
 
+        update(time) {
+            this.animals.children.iterate(a => {
+                if (!a || a.isHeld) return;
 
+                // ¿ESTÁ EN EL AIRE?
+                if (a.y < a.currentTargetY - 10) {
+                    // Mientras vuela, no le ponemos freno para que mantenga su dirección
+                    a.body.setDragX(0); 
+                } 
+                // ¿ESTÁ EN EL SUELO?
+                else {
+                    // Al tocar el suelo, aplicamos un freno fuerte (fricción con el pasto/suelo)
+                    a.body.setDragX(2000); 
+                    
+                    // Si ya casi no se mueve, lo dejamos quieto del todo
+                    if (Math.abs(a.body.velocity.x) < 20) {
+                        a.body.setVelocityX(0);
+                        a.y = a.currentTargetY;
+                        a.body.setVelocityY(0);
+                    }
 
-function checkOrientation() {
-    const notice = document.getElementById('rotateNotice');
-    if (window.innerWidth < window.innerHeight) {
-        notice.style.display = 'flex';
-    } else {
-        notice.style.display = 'none';
+                    // Lógica de saltos automáticos (IA del animal)
+                    if (time > a.nextDecision && a.body.velocity.x === 0) {
+                        let dir = Phaser.Math.Between(-1, 1);
+                        if (dir !== 0) {
+                            a.currentTargetY = Phaser.Math.Between(a.minY, a.maxY);
+                            a.body.setVelocityY(a.jumpPower);
+                            a.body.setVelocityX(dir * 150); // Un poco más de impulso al caminar
+
+                            const cam = this.cameras.main;
+
+                            if (cam.worldView.contains(a.x, a.y)) {
+
+                                const sounds = this.cfg.jumpSounds;
+
+                                console.log(sounds.length); 
+
+                                if (sounds && sounds.length > 0) {
+                                    
+                                    const randomKey = Phaser.Utils.Array.GetRandom(sounds);
+
+                                    if (this.cache.audio.exists(randomKey)) {
+                                        this.sound.play(randomKey, { volume: 0.5 });
+                                    } else {
+                                        console.warn('Sonido no cargado:', randomKey);
+                                    }
+                                }
+                            }
+                            a.setFlipX(dir === 1);
+                        }
+                        a.nextDecision = time + Phaser.Math.Between(2000, 5000);
+                    }
+                }
+
+                // --- NUEVA LÓGICA DE AUTO-SCROLL AL ARRASTRAR ---
+                const pointer = this.input.activePointer;
+                
+                if (pointer.isDown) {
+                    // Buscamos si hay algún animal o vehículo siendo arrastrado
+                    const draggedObj = this.children.list.find(child => child.isHeld === true);
+
+                    if (draggedObj) {
+                        const cam = this.cameras.main;
+                        const viewWidth = cam.width;
+                        
+                        // Si el puntero está cerca del borde derecho
+                        if (pointer.x > viewWidth - this.edgeThreshold) {
+                            if (cam.scrollX < this.cfg.worldWidth - viewWidth) {
+                                cam.scrollX += this.scrollSpeed;
+                                // Ajustamos la posición del objeto para que no se "atrase" respecto al dedo
+                                draggedObj.x += this.scrollSpeed;
+                            }
+                        }
+                        // Si el puntero está cerca del borde izquierdo
+                        else if (pointer.x < this.edgeThreshold) {
+                            if (cam.scrollX > 0) {
+                                cam.scrollX -= this.scrollSpeed;
+                                draggedObj.x -= this.scrollSpeed;
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- NUEVA LÓGICA DE VOLTEO DE PÁJAROS ---
+            if (this.birdsGroup) {
+                this.birdsGroup.children.iterate(bird => {
+                    if (!bird || !bird.body) return;
+
+                    // Si la velocidad X es negativa, va a la IZQUIERDA
+                    if (bird.body.velocity.x < 0) {
+                        bird.setFlipX(true); // Volteamos la imagen
+                    } 
+                    // Si la velocidad X es positiva, va a la DERECHA
+                    else if (bird.body.velocity.x > 0) {
+                        bird.setFlipX(false); // Imagen original
+                    }
+                    
+                    // Pequeño toque extra aleatorio para cambiar altura
+                    if (Phaser.Math.Between(0, 1000) < 5) {
+                        bird.setVelocityY(Phaser.Math.Between(-20, 20));
+                    }
+                });
+            }
+        }
     }
-}
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('load', checkOrientation);
 
-window.addEventListener('resize', () => {
-    // Actualizamos el tamaño del juego dinámicamente si cambia la ventana
-    const newWidth = window.innerWidth;
-    const newHeight = window.innerHeight;
-    const newRatio = newWidth / newHeight;
+    // 3. CONFIGURACIÓN FINAL (Actualizada)
+    const CANONICAL_HEIGHT = 720;
+    const config = {
+        type: Phaser.AUTO,
+        scale: { 
+            mode: Phaser.Scale.FIT, 
+            autoCenter: Phaser.Scale.CENTER_BOTH, 
+            width: Math.ceil(CANONICAL_HEIGHT * (window.innerWidth/window.innerHeight)), 
+            height: CANONICAL_HEIGHT 
+        },
+        physics: { 
+            default: 'arcade', 
+            arcade: { gravity: { y: 1200 }, debug: false } 
+        },
+        // El orden importa: la primera escena del array es la que arranca el juego
+        scene: [MainMenu, MasterEngine] 
+    };
+
+    window.game = new Phaser.Game(config);
+
+    window.addEventListener('resize', () => {
+        if (window.game) window.game.scale.setGameSize(Math.ceil(CANONICAL_HEIGHT * (window.innerWidth/window.innerHeight)), CANONICAL_HEIGHT);
+    });
+
     
-    // Cambiamos el tamaño del canvas de Phaser internamente
-    if (window.game) {
-        window.game.scale.setGameSize(Math.ceil(CANONICAL_HEIGHT * newRatio), CANONICAL_HEIGHT);
-    }
-    checkOrientation();
-});
-
-// Y cuando crees el juego, asígnale una variable global:
-window.game = new Phaser.Game(config);
-
-</script>
-
-
+    </script>
 </body>
 </html>
