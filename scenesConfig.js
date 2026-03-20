@@ -29,8 +29,8 @@ const SCENES_DATA = {
                 { key: 'tree3', path: 'images/granja/tree3.png', count: 5, scale: 0.6, offsetY: -70, type: 'tree', depth: 8 },
                 { key: 'granero', path: 'images/granja/granero.png', count: 1, scale: 1.3, offsetY: -70, type: 'static', depth: 9 },
                 { key: 'casa', path: 'images/granja/casa.png', count: 1, scale: 0.7, offsetY: -65, type: 'static', vol: 1.5, depth: 9 },
-                { key: 'tractor', path: 'images/granja/tractor.png', count: 1, scale: 0.7, offsetY: -65, type: 'vehicle', vol: 2.0, depth: 9 },
-                { key: 'coche', path: 'images/granja/coche.png', count: 1, scale: 0.7, offsetY: -65, type: 'vehicle', vol: 1.5, depth: 9 },
+                { key: 'tractor', path: 'images/granja/tractor.png', count: 1, scale: 0.7, offsetY: -65, type: 'vehicle', vol: 2.0, depth: 10 },
+                { key: 'coche', path: 'images/granja/coche.png', count: 1, scale: 0.7, offsetY: -65, type: 'vehicle', vol: 1.5, depth: 10 },
                 
             ],
             audio: [
